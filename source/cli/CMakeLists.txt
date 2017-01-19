@@ -1,0 +1,2 @@
+add_executable(NFDecoderCLI NFDecoderCLI.cpp)
+target_link_libraries(NFDecoderCLI NFDecoder)

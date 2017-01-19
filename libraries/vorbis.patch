@@ -1,0 +1,56 @@
+diff --git a/include/vorbis/vorbisfile.h b/include/vorbis/vorbisfile.h
+index 5662611..0574e64 100644
+--- a/include/vorbis/vorbisfile.h
++++ b/include/vorbis/vorbisfile.h
+@@ -142,6 +142,9 @@ typedef struct OggVorbis_File {
+ 
+   ov_callbacks callbacks;
+ 
++  /* The read size of the vorbis file */
++  int             read_size;
++
+ } OggVorbis_File;
+ 
+ 
+@@ -184,6 +187,7 @@ extern double ov_time_tell(OggVorbis_File *vf);
+ 
+ extern vorbis_info *ov_info(OggVorbis_File *vf,int link);
+ extern vorbis_comment *ov_comment(OggVorbis_File *vf,int link);
++extern void ov_set_read_size(OggVorbis_File *vf,int read_size);
+ 
+ extern long ov_read_float(OggVorbis_File *vf,float ***pcm_channels,int samples,
+                           int *bitstream);
+diff --git a/lib/vorbisfile.c b/lib/vorbisfile.c
+index b570c3c..3e1e051 100644
+--- a/lib/vorbisfile.c
++++ b/lib/vorbisfile.c
+@@ -67,8 +67,8 @@ static long _get_data(OggVorbis_File *vf){
+   errno=0;
+   if(!(vf->callbacks.read_func))return(-1);
+   if(vf->datasource){
+-    char *buffer=ogg_sync_buffer(&vf->oy,READSIZE);
+-    long bytes=(vf->callbacks.read_func)(buffer,1,READSIZE,vf->datasource);
++    char *buffer=ogg_sync_buffer(&vf->oy,vf->read_size);
++    long bytes=(vf->callbacks.read_func)(buffer,1,vf->read_size,vf->datasource);
+     if(bytes>0)ogg_sync_wrote(&vf->oy,bytes);
+     if(bytes==0 && errno)return(-1);
+     return(bytes);
+@@ -883,6 +883,7 @@ static int _ov_open1(void *f,OggVorbis_File *vf,const char *initial,
+   memset(vf,0,sizeof(*vf));
+   vf->datasource=f;
+   vf->callbacks = callbacks;
++  vf->read_size = READSIZE;
+ 
+   /* init the framing state */
+   ogg_sync_init(&vf->oy);
+@@ -1910,6 +1911,10 @@ vorbis_comment *ov_comment(OggVorbis_File *vf,int link){
+   }
+ }
+ 
++void ov_set_read_size(OggVorbis_File *vf,int read_size) {
++  vf->read_size = read_size;
++}
++
+ static int host_is_big_endian() {
+   ogg_int32_t pattern = 0xfeedface; /* deadbeef */
+   unsigned char *bytewise = (unsigned char *)&pattern;

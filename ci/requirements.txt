@@ -1,0 +1,5 @@
+pyyaml
+flake8
+cmakelint
+pysoundfile
+numpy

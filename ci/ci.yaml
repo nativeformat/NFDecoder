@@ -1,0 +1,9 @@
+integration_tests:
+  - audio: b56e61f0a5fb8e3f66bdcd511853698e.flac
+    file: https://upload.wikimedia.org/wikipedia/en/4/45/ACDC_-_Back_In_Black-sample.ogg
+    error: 0.0001
+    offset: 0.0
+static_analyzer_exceptions:
+  - source/FactoryCommonImplementation.cpp
+  - source/FactoryCommonImplementation.h
+  - source/FactoryTransmuxerImplementation.cpp

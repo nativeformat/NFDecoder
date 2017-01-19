@@ -1,0 +1,30 @@
+[submodule "libraries/vorbis"]
+	path = libraries/vorbis
+	url = https://github.com/xiph/vorbis.git
+[submodule "libraries/ogg"]
+	path = libraries/ogg
+	url = https://github.com/xiph/ogg.git
+[submodule "libraries/libresample"]
+	path = libraries/libresample
+	url = https://github.com/minorninth/libresample.git
+[submodule "libraries/NFHTTP"]
+	path = libraries/NFHTTP
+	url = git@github.com:spotify/NFHTTP.git
+[submodule "tools/gyp"]
+	path = tools/gyp
+	url = https://chromium.googlesource.com/external/gyp
+[submodule "libraries/opusfile"]
+	path = libraries/opusfile
+	url = https://github.com/xiph/opusfile
+[submodule "libraries/opus"]
+	path = libraries/opus
+	url = https://github.com/xiph/opus.git
+[submodule "libraries/flac"]
+	path = libraries/flac
+	url = https://github.com/xiph/flac.git
+[submodule "libraries/TinySoundFont"]
+	path = libraries/TinySoundFont
+	url = https://github.com/schellingb/TinySoundFont.git
+[submodule "libraries/universal-dash-transmuxer"]
+	path = libraries/universal-dash-transmuxer
+	url = https://github.com/google/universal-dash-transmuxer.git
