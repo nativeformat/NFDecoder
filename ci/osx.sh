@@ -29,12 +29,21 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 HOMEBREW_BREWFILE=${DIR}/Brewfile
 brew bundle --file=${HOMEBREW_BREWFILE}
 
+# Update submodules
+git submodule sync
+git submodule update --init --recursive
+
 # Install virtualenv
 virtualenv --python=$(which python2) nfdecoder_env
 source nfdecoder_env/bin/activate
 
 # Install Python Packages
 pip install -r ${DIR}/requirements.txt
+
+# Install gyp
+cd tools/gyp
+python setup.py install
+cd ../..
 
 # Execute our python build tools
 if [ -n "$BUILD_IOS" ]; then

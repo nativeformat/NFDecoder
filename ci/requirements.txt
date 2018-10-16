@@ -3,3 +3,5 @@ flake8
 cmakelint
 pysoundfile
 numpy
+requests
+

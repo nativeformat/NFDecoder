@@ -29,17 +29,18 @@ from build_options import BuildOptions
 
 def main():
     buildOptions = BuildOptions()
-    buildOptions.addOption("installDependencies", "Install dependencies")
+    buildOptions.addOption("debug", "Enable Debug Mode")
     buildOptions.addOption("lintCmake", "Lint cmake files")
-
-    buildOptions.addOption("integrationTests", "Run Integration Tests")
-
     buildOptions.addOption("makeBuildDirectory",
                            "Wipe existing build directory")
     buildOptions.addOption("generateProject", "Regenerate xcode project")
-
+    buildOptions.addOption("buildTargetLibrary", "Build Target: Library")
+    buildOptions.addOption("gnuToolchain", "Build with gcc and libstdc++")
+    buildOptions.addOption("llvmToolchain", "Build with clang and libc++")
+    buildOptions.addOption("integrationTests", "Run Integration Tests")
     buildOptions.addOption("addressSanitizer",
                            "Enable Address Sanitizer in generate project")
+    # buildOptions.addOption("packageArtifacts", "Package the Artifacts")
     buildOptions.addOption("ubSanitizer",
                            "Enable UB Sanitizer in generate project")
     buildOptions.addOption("memSanitizer",
@@ -53,14 +54,31 @@ def main():
 
     buildOptions.setDefaultWorkflow("Empty workflow", [])
 
+    # TODO: Check if we need package artifacts
+    buildOptions.addWorkflow("clang_build", "Production Clang Build", [
+        'llvmToolchain',
+        'lintCmake',
+        'makeBuildDirectory',
+        'generateProject',
+        'buildTargetLibrary',
+        'integrationTests'
+    ])
+
+    buildOptions.addWorkflow("gcc_build", "Production build with gcc", [
+        'gnuToolchain',
+        'lintCmake',
+        'makeBuildDirectory',
+        'generateProject',
+        'buildTargetLibrary',
+        'integrationTests',
+    ])
+
     buildOptions.addWorkflow("local_it", "Run local integration tests", [
-        'installDependencies',
         'printStackTrace',
         'integrationTests'
     ])
 
     buildOptions.addWorkflow("ub_sanitizer", "Run UB sanitizer", [
-        'installDependencies',
         'printStackTrace',
         'lintCmake',
         'makeBuildDirectory',
@@ -71,7 +89,6 @@ def main():
     ])
 
     buildOptions.addWorkflow("mem_sanitizer", "Run Mem sanitizer", [
-        'installDependencies',
         'lintCmake',
         'makeBuildDirectory',
         'generateProject',
@@ -81,7 +98,6 @@ def main():
     ])
 
     buildOptions.addWorkflow("address_sanitizer", "Run address sanitizer", [
-        'installDependencies',
         'lintCmake',
         'makeBuildDirectory',
         'generateProject',
@@ -91,7 +107,6 @@ def main():
     ])
 
     buildOptions.addWorkflow("build", "Production Build", [
-        'installDependencies',
         'lintCmake',
         'makeBuildDirectory',
         'generateProject',
@@ -106,8 +121,8 @@ def main():
     cli_target = 'NFDecoderCLI'
     nfbuild = NFBuildLinux()
 
-    if buildOptions.checkOption(options, 'installDependencies'):
-        nfbuild.installDependencies()
+    if buildOptions.checkOption(options, 'debug'):
+        nfbuild.build_type = 'Debug'
 
     if buildOptions.checkOption(options, 'lintCmake'):
         nfbuild.lintCmake()
@@ -119,11 +134,24 @@ def main():
         os.environ['UBSAN_OPTIONS=print_stacktrace'] = '1'
 
     if buildOptions.checkOption(options, 'generateProject'):
-        nfbuild.generateProject(
-            address_sanitizer='addressSanitizer' in options,
-            ub_sanitizer='ubSanitizer' in options,
-            mem_sanitizer='memSanitizer' in options
-            )
+        if buildOptions.checkOption(options, 'gnuToolchain'):
+            os.environ['CC'] = 'gcc-4.9'
+            os.environ['CXX'] = 'g++-4.9'
+            nfbuild.generateProject(address_sanitizer='addressSanitizer' in options,
+                                    ub_sanitizer='ubSanitizer' in options,
+                                    mem_sanitizer='memSanitizer' in options,
+                                    gcc=True)
+        elif buildOptions.checkOption(options, 'llvmToolchain'):
+            os.environ['CC'] = 'clang-3.9'
+            os.environ['CXX'] = 'clang++-3.9'
+            nfbuild.generateProject(address_sanitizer='addressSanitizer' in options,
+                                    ub_sanitizer='ubSanitizer' in options,
+                                    mem_sanitizer='memSanitizer' in options,
+                                    gcc=False)
+        else:
+            nfbuild.generateProject(address_sanitizer='addressSanitizer' in options,
+                                    ub_sanitizer='ubSanitizer' in options,
+                                    mem_sanitizer='memSanitizer' in options)
 
     if buildOptions.checkOption(options, 'buildTargetLibrary'):
         nfbuild.buildTarget(library_target)
@@ -133,6 +161,9 @@ def main():
 
     if buildOptions.checkOption(options, 'integrationTests'):
         nfbuild.runIntegrationTests()
+
+    # if buildOptions.checkOption(options, 'packageArtifacts'):
+    #     nfbuild.packageArtifacts()
 
 if __name__ == "__main__":
     main()

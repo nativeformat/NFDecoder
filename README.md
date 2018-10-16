@@ -1,6 +1,8 @@
-<img alt="NFDecoder" src="NFDecoder.png" width="100%" max-width="888">
+<p align="center">
+    <img alt="NFDecoder" src="NFDecoder.png" max-height="384px">
+</p>
 
-[![CircleCI](https://circleci.com/gh/spotify/NFDecoder/tree/master.svg?style=svg)](https://circleci.com/gh/spotify/NFDecoder/tree/master)
+[![CircleCI](https://circleci.com/gh/spotify/NFDecoder.svg?style=svg)](https://circleci.com/gh/spotify/NFDecoder)
 [![License](https://img.shields.io/github/license/spotify/NFDecoder.svg)](LICENSE)
 [![Spotify FOSS Slack](https://slackin.spotify.com/badge.svg)](https://slackin.spotify.com)
 [![Readme Score](http://readme-score-api.herokuapp.com/score.svg?url=https://github.com/spotify/nfdecoder)](http://clayallsopp.github.io/readme-score?url=https://github.com/spotify/nfdecoder)
@@ -122,7 +124,7 @@ Contributions are welcomed, have a look at the [CONTRIBUTING.md](CONTRIBUTING.md
 The project is available under the [Apache 2.0](http://www.apache.org/licenses/LICENSE-2.0) license.
 
 ### Acknowledgements
-- Icon in readme banner is “[Download](https://thenounproject.com/search/?q=http&i=174663)” by romzicon from the Noun Project.
+- Icon in readme banner is "[Audio](https://thenounproject.com/search/?q=audio&i=1382744)" by Royyan Wijaya from the Noun Project.
 
 #### Contributors
 * [Will Sackfield](https://github.com/8W9aG)

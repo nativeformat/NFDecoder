@@ -22,33 +22,60 @@
 set -e
 set -x
 
-# Install system dependencies
-# sudo apt-get update
-sudo apt-get install -y ninja-build
-sudo apt-get install -y clang-3.8
-sudo apt-get install -y libc++-dev
-sudo apt-get install -y libcurl4-openssl-dev
-sudo apt-get install -y wget
-sudo apt-get install -y libsndfile1
+# DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 
-export CC=clang-3.8
-export CXX=clang++-3.8
+# Install system dependencies
+sudo apt-get -q update
+sudo apt-get install -y -q --no-install-recommends apt-utils \
+    ninja-build \
+    clang-3.9 \
+    clang-format-3.9 \
+    libc++-dev \
+    libcurl4-openssl-dev \
+    libc++-dev \
+    wget \
+    libsndfile1 \
+    git \
+    unzip \
+    software-properties-common \
+    python-software-properties \
+    make \
+    libyaml-dev \
+    libssl-dev \
+    python-dev \
+    python3-dev \
+    python-virtualenv \
+    build-essential \
+    autoconf \
+    libtool
+
+# Extra repo for gcc-4.9 so we don't have to use 4.8
+sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+sudo apt-get update
+sudo apt-get install -y --no-install-recommends gcc-4.9 \
+    g++-4.9 \
+    gobjc++-4.9
+
+sudo apt-get install -y --reinstall binutils build-essential
+
+# Install cmake 3.6.x
+wget --no-check-certificate https://cmake.org/files/v3.6/cmake-3.6.3-Linux-x86_64.sh -O cmake-3.6.3-Linux-x86_64.sh
+chmod +x cmake-3.6.3-Linux-x86_64.sh
+sudo sh cmake-3.6.3-Linux-x86_64.sh --prefix=/usr/local --exclude-subdir
+
+# Update submodules
+git submodule sync
+git submodule update --init --recursive
+
+export CC=clang-3.9
+export CXX=clang++-3.9
 
 # Install virtualenv
-VIRTUALENV_LOCAL_PATH='/virtualenv-15.1.0/virtualenv.py'
-VIRTUALENV_PATH=`python tools/vulcan/bin/vulcan.py -v -f tools/virtualenv.vulcan -p virtualenv-15.1.0`
-VIRTUALENV_PATH=$VIRTUALENV_PATH$VIRTUALENV_LOCAL_PATH
-$VIRTUALENV_PATH nfdecoder_env
+virtualenv --python=$(which python2) nfdecoder_env
 . nfdecoder_env/bin/activate
 
 # Install Python Packages
-pip install pyyaml
-pip install flake8
-pip install cmakelint
-pip install numpy
-pip install numba==0.35.0
-pip install pysoundfile
-pip install numpy
+pip install -r ${PWD}/ci/requirements.txt
 
 # Install gyp
 cd tools/gyp
@@ -56,4 +83,18 @@ python setup.py install
 cd ../..
 
 # Execute our python build tools
-python ci/linux.py "$@"
+if [ -n "$BUILD_ANDROID" ]; then
+    # Install Android NDK
+    NDK='android-ndk-r17b-linux-x86_64'
+    ZIP='zip'
+    wget https://dl.google.com/android/repository/${NDK}.${ZIP} -O ${PWD}/${NDK}.${ZIP}
+    unzip -o -q ${NDK}.${ZIP}
+    rm -rf ~/ndk
+    mv android-ndk-r17b ~/ndk
+
+    chmod +x -R ~/ndk
+
+    python ci/androidlinux.py "$@"
+else
+    python ci/linux.py "$@"
+fi

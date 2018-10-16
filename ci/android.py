@@ -23,26 +23,72 @@
 import sys
 
 from nfbuildosx import NFBuildOSX
+from build_options import BuildOptions
 
 
 def main():
+    buildOptions = BuildOptions()
+    buildOptions.addOption("makeBuildDirectoryX86",
+                           "Wipe existing build directory for X86 build.")
+    buildOptions.addOption("generateProjectX86", "Regenerate project for X86 build")
+
+    buildOptions.addOption("buildTargetLibraryX86", "Build Target: Library (X86)")
+
+    buildOptions.addOption("makeBuildDirectoryArm64",
+                           "Wipe existing build directory for ARM64 build.")
+    buildOptions.addOption("generateProjectArm64", "Regenerate project for ARM64 build")
+    # buildOptions.addOption("packageArtifacts", "Package the artifacts produced by the build")
+    buildOptions.addOption("buildTargetLibraryArm64", "Build Target: Library (ARM64)")
+
+    buildOptions.setDefaultWorkflow("Empty workflow", [])
+
+    buildOptions.addWorkflow("build", "Production Build (Android OSX)", [
+        'makeBuildDirectoryX86',
+        'generateProjectX86',
+        'buildTargetLibraryX86',
+        'makeBuildDirectoryArm64',
+        'generateProjectArm64',
+        'buildTargetLibraryArm64',
+    ])
+
+    buildOptions.addWorkflow("buildX86", "Production Build (X86)", [
+        'makeBuildDirectoryX86',
+        'generateProjectX86',
+        'buildTargetLibraryX86',
+    ])
+
+    buildOptions.addWorkflow("buildArm64", "Production Build (ARM64)", [
+        'makeBuildDirectoryArm64',
+        'generateProjectArm64',
+        'buildTargetLibraryArm64',
+    ])
+
+    options = buildOptions.parseArgs()
+    buildOptions.verbosePrintBuildOptions(options)
+
     library_target = 'NFDecoder'
     nfbuild = NFBuildOSX()
-    nfbuild.build_print("Installing Dependencies")
-    nfbuild.installDependencies(android=True)
-    # Make our main build artifacts
-    nfbuild.build_print("C++ Build Start (x86)")
-    nfbuild.makeBuildDirectory()
-    nfbuild.generateProject(android=True, android_arm=False)
-    targets = [library_target]
-    for target in targets:
-        nfbuild.buildTarget(target)
-    nfbuild.build_print("C++ Build Start (arm64)")
-    nfbuild.makeBuildDirectory()
-    nfbuild.generateProject(android=False, android_arm=True)
-    targets = [library_target]
-    for target in targets:
-        nfbuild.buildTarget(target)
+
+    if buildOptions.checkOption(options, 'makeBuildDirectoryX86'):
+        nfbuild.makeBuildDirectory()
+
+    if buildOptions.checkOption(options, 'generateProjectX86'):
+        nfbuild.generateProject(android=True, android_arm=False)
+
+    if buildOptions.checkOption(options, 'buildTargetLibraryX86'):
+        nfbuild.buildTarget(library_target)
+
+    # if buildOptions.checkOption(options, 'packageArtifacts'):
+    #     nfbuild.packageArtifacts()
+
+    if buildOptions.checkOption(options, 'makeBuildDirectoryArm64'):
+        nfbuild.makeBuildDirectory()
+
+    if buildOptions.checkOption(options, 'generateProjectArm64'):
+        nfbuild.generateProject(android=True, android_arm=True)
+
+    if buildOptions.checkOption(options, 'buildTargetLibraryArm64'):
+        nfbuild.buildTarget(library_target)
 
 
 if __name__ == "__main__":

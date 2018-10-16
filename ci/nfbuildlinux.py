@@ -36,11 +36,15 @@ class NFBuildLinux(NFBuild):
     def __init__(self):
         super(self.__class__, self).__init__()
         self.project_file = 'build.ninja'
+        self.cmake_binary = 'cmake'
+        self.android_ndk_folder = '~/ndk'
+        self.clang_format_binary = 'clang-format-3.9'
 
     def generateProject(self,
                         ub_sanitizer=False,
                         address_sanitizer=False,
-                        mem_sanitizer=False):
+                        mem_sanitizer=False,
+                        gcc=False):
         cmake_call = [
             self.cmake_binary,
             '..',
@@ -53,6 +57,10 @@ class NFBuildLinux(NFBuild):
             cmake_call.append('-DUSE_MEM_SANITIZER=1')
         if address_sanitizer:
             cmake_call.append('-DUSE_ADDRESS_SANITIZER=1')
+        if gcc:
+            cmake_call.extend(['-DLLVM_STDLIB=0'])
+        else:
+            cmake_call.extend(['-DLLVM_STDLIB=1'])
         cmake_result = subprocess.call(cmake_call, cwd=self.build_directory)
         if cmake_result != 0:
             sys.exit(cmake_result)
