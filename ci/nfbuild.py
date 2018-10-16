@@ -50,14 +50,14 @@ class NFBuild(object):
         sys.stdout.flush()
 
     def makeBuildDirectory(self):
-        if os.path.exists(self.build_directory):
-            shutil.rmtree(self.build_directory)
-        os.makedirs(self.build_directory)
+        if not os.path.exists(self.build_directory):
+            os.makedirs(self.build_directory)
+        else:
+            shutil.rmtree(os.path.join(self.build_directory, 'output'))
         os.makedirs(self.output_directory)
 
     def addLibraryPath(self, library_path):
         assert True, "addLibraryPath should be overridden by subclass"
-
 
     def installDependencies(self, android=False):
         pass
@@ -142,7 +142,7 @@ class NFBuild(object):
         loglevel = 'panic'
         os.environ['UBSAN_OPTIONS'] = 'print_stacktrace=1'
         os.environ['ASAN_OPTIONS'] = 'symbolize=1'
-        os.environ['ASAN_SYMBOLIZER_PATH'] = '/usr/lib/llvm-3.8/bin/llvm-symbolizer'
+        os.environ['ASAN_SYMBOLIZER_PATH'] = '/usr/lib/llvm-6.0/bin/llvm-symbolizer'
         for integration_test in self.build_configuration['integration_tests']:
             self.build_print(
                 'Running Integration Test: ' + integration_test['audio'])

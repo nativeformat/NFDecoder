@@ -22,33 +22,85 @@
 set -e
 set -x
 
-# Install system dependencies
-# sudo apt-get update
-sudo apt-get install -y ninja-build
-sudo apt-get install -y clang-3.8
-sudo apt-get install -y libc++-dev
-sudo apt-get install -y libcurl4-openssl-dev
-sudo apt-get install -y wget
-sudo apt-get install -y libsndfile1
+# DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 
-export CC=clang-3.8
-export CXX=clang++-3.8
+# Install system dependencies
+apt-get -q update
+apt-get install sudo
+sudo apt-get install -y -q --no-install-recommends software-properties-common
+# sudo add-apt-repository -y ppa:mc3man/trusty-media
+sudo apt-get -q update
+sudo apt-get install -y -q --no-install-recommends apt-utils \
+    ninja-build \
+    clang \
+    clang-format \
+    libc++-dev \
+    libcurl4-openssl-dev \
+    libssl-dev \
+    libc++-dev \
+    wget \
+    libsndfile1 \
+    git \
+    unzip \
+    make \
+    libyaml-dev \
+    libssl-dev \
+    python-dev \
+    python3-dev \
+    python-virtualenv \
+    build-essential \
+    autoconf \
+    libtool \
+    libffi-dev \
+    libffi6 \
+    libblas3 \
+    libblas-dev \
+    liblapack3 \
+    liblapack-dev \
+    libatlas3-base \
+    libatlas-base-dev \
+    x264 \
+    lame \
+    python-pip \
+    virtualenv \
+    cmake \
+    libidn11 \
+    libidn11-dev \
+    libavformat-dev \
+    libavcodec-dev \
+    libavutil-dev \
+    libswscale-dev \
+    libavresample-dev \
+    libavfilter-dev \
+    libavdevice-dev \
+    libavcodec-extra \
+    libc++abi-dev \
+    libc++-dev \
+    libboost-all-dev \
+    gobjc++ \
+    ffmpeg \
+    llvm
+
+# Update submodules
+git submodule sync
+git submodule update --init --recursive
+
+export CC=clang
+export CXX=clang++
+
+# Install boost 1.64.x
+#wget --no-check-certificate https://dl.bintray.com/boostorg/release/1.64.0/source/boost_1_64_0.tar.bz2  -O boost_1_64_0.tar.bz2
+#tar --bzip2 -xf boost_1_64_0.tar.bz2
+#export BOOST_ROOT="$PWD/boost_1_64_0"
 
 # Install virtualenv
-VIRTUALENV_LOCAL_PATH='/virtualenv-15.1.0/virtualenv.py'
-VIRTUALENV_PATH=`python tools/vulcan/bin/vulcan.py -v -f tools/virtualenv.vulcan -p virtualenv-15.1.0`
-VIRTUALENV_PATH=$VIRTUALENV_PATH$VIRTUALENV_LOCAL_PATH
-$VIRTUALENV_PATH nfdecoder_env
+virtualenv --python=$(which python2) nfdecoder_env
 . nfdecoder_env/bin/activate
 
 # Install Python Packages
-pip install pyyaml
-pip install flake8
-pip install cmakelint
-pip install numpy
-pip install numba==0.35.0
-pip install pysoundfile
-pip install numpy
+pip install six
+# pip install --upgrade setuptools pip
+pip install -r ${PWD}/ci/requirements.txt
 
 # Install gyp
 cd tools/gyp
@@ -56,4 +108,18 @@ python setup.py install
 cd ../..
 
 # Execute our python build tools
-python ci/linux.py "$@"
+if [ -n "$BUILD_ANDROID" ]; then
+    # Install Android NDK
+    NDK='android-ndk-r17b-linux-x86_64'
+    ZIP='zip'
+    wget https://dl.google.com/android/repository/${NDK}.${ZIP} -O ${PWD}/${NDK}.${ZIP}
+    unzip -o -q ${NDK}.${ZIP}
+    rm -rf ~/ndk
+    mv android-ndk-r17b ~/ndk
+
+    chmod +x -R ~/ndk
+
+    python ci/androidlinux.py "$@"
+else
+    python ci/linux.py "$@"
+fi

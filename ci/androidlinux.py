@@ -18,16 +18,17 @@
  * KIND, either express or implied.  See the License for the
  * specific language governing permissions and limitations
  * under the License.
- '''
+'''
 
 import sys
 
-from nfbuildosx import NFBuildOSX
+from nfbuildlinux import NFBuildLinux
 from build_options import BuildOptions
 
 
 def main():
     buildOptions = BuildOptions()
+
     buildOptions.addOption("makeBuildDirectoryX86",
                            "Wipe existing build directory for X86 build.")
     buildOptions.addOption("generateProjectX86", "Regenerate project for X86 build")
@@ -42,7 +43,7 @@ def main():
 
     buildOptions.setDefaultWorkflow("Empty workflow", [])
 
-    buildOptions.addWorkflow("build", "Production Build (Android OSX)", [
+    buildOptions.addWorkflow("build", "Production Build (Android Linux)", [
         'makeBuildDirectoryX86',
         'generateProjectX86',
         'buildTargetLibraryX86',
@@ -67,7 +68,7 @@ def main():
     buildOptions.verbosePrintBuildOptions(options)
 
     library_target = 'NFDecoder'
-    nfbuild = NFBuildOSX()
+    nfbuild = NFBuildLinux()
 
     if buildOptions.checkOption(options, 'makeBuildDirectoryX86'):
         nfbuild.makeBuildDirectory()
@@ -89,6 +90,9 @@ def main():
 
     if buildOptions.checkOption(options, 'buildTargetLibraryArm64'):
         nfbuild.buildTarget(library_target)
+
+    # if buildOptions.checkOption(options, 'packageArtifacts'):
+    #     nfbuild.packageArtifacts()
 
 
 if __name__ == "__main__":

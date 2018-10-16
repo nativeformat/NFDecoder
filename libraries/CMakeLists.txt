@@ -477,19 +477,24 @@ target_include_directories(libresample PUBLIC ${libresample_INCLUDE_DIRECTORY} $
 
 if(INCLUDE_LGPL)
   # TODO: Insert retrieval of FFMPEG here
-  string(STRIP "${FFMPEG_EXTRACTION_FOLDER}" FFMPEG_EXTRACTION_FOLDER_STRIPPED)
+  set(FFMPEG_LIBRARY_SUFFIX ${CMAKE_SHARED_LIBRARY_SUFFIX})
+  set(FFMPEG_LIBRARY_TYPE "SHARED")
+  if(UNIX AND NOT APPLE)
+      set(FFMPEG_LIBRARY_DIR "/usr/lib/x86_64-linux-gnu/")
+      set(FFMPEG_INCLUDE_DIR "/usr/include/x86_64-linux-gnu/")
+      # set(FFMPEG_LIBRARY_SUFFIX ${CMAKE_STATIC_LIBRARY_SUFFIX})
+      # set(FFMPEG_LIBRARY_TYPE "STATIC")
+  endif()
 
   set(FFMPEG_FOUND ON)
-  set(LIBAVCODEC_PATH "${FFMPEG_EXTRACTION_FOLDER_STRIPPED}/lib/libavcodec${CMAKE_SHARED_LIBRARY_SUFFIX}")
-  set(LIBAVDEVICE_PATH "${FFMPEG_EXTRACTION_FOLDER_STRIPPED}/lib/libavdevice${CMAKE_SHARED_LIBRARY_SUFFIX}")
-  set(LIBAVFILTER_PATH "${FFMPEG_EXTRACTION_FOLDER_STRIPPED}/lib/libavfilter${CMAKE_SHARED_LIBRARY_SUFFIX}")
-  set(LIBAVFORMAT_PATH "${FFMPEG_EXTRACTION_FOLDER_STRIPPED}/lib/libavformat${CMAKE_SHARED_LIBRARY_SUFFIX}")
-  set(LIBAVRESAMPLE_PATH "${FFMPEG_EXTRACTION_FOLDER_STRIPPED}/lib/libavresample${CMAKE_SHARED_LIBRARY_SUFFIX}")
-  set(LIBAVUTIL_PATH "${FFMPEG_EXTRACTION_FOLDER_STRIPPED}/lib/libavutil${CMAKE_SHARED_LIBRARY_SUFFIX}")
-  set(LIBSWRESAMPLE_PATH "${FFMPEG_EXTRACTION_FOLDER_STRIPPED}/lib/libswresample${CMAKE_SHARED_LIBRARY_SUFFIX}")
-  set(LIBSWSCALE_PATH "${FFMPEG_EXTRACTION_FOLDER_STRIPPED}/lib/libswscale${CMAKE_SHARED_LIBRARY_SUFFIX}")
-  set(FFMPEG_INCLUDE_DIR
-    "${FFMPEG_EXTRACTION_FOLDER_STRIPPED}/include")
+  set(LIBAVCODEC_PATH "${FFMPEG_LIBRARY_DIR}/libavcodec${FFMPEG_LIBRARY_SUFFIX}")
+  set(LIBAVDEVICE_PATH "${FFMPEG_LIBRARY_DIR}/libavdevice${FFMPEG_LIBRARY_SUFFIX}")
+  set(LIBAVFILTER_PATH "${FFMPEG_LIBRARY_DIR}/libavfilter${FFMPEG_LIBRARY_SUFFIX}")
+  set(LIBAVFORMAT_PATH "${FFMPEG_LIBRARY_DIR}/libavformat${FFMPEG_LIBRARY_SUFFIX}")
+  set(LIBAVRESAMPLE_PATH "${FFMPEG_LIBRARY_DIR}/libavresample${FFMPEG_LIBRARY_SUFFIX}")
+  set(LIBAVUTIL_PATH "${FFMPEG_LIBRARY_DIR}/libavutil${FFMPEG_LIBRARY_SUFFIX}")
+  set(LIBSWRESAMPLE_PATH "${FFMPEG_LIBRARY_DIR}/libswresample${FFMPEG_LIBRARY_SUFFIX}")
+  set(LIBSWSCALE_PATH "${FFMPEG_LIBRARY_DIR}/libswscale${FFMPEG_LIBRARY_SUFFIX}")
   set(FFMPEG_FOUND ${FFMPEG_FOUND} PARENT_SCOPE)
   # This is a hack to make libavcodec work on Unix systems
   if(UNIX)
@@ -527,14 +532,14 @@ if(INCLUDE_LGPL)
   endif()
   set(FFMPEG_INCLUDE_DIR ${FFMPEG_INCLUDE_DIR} PARENT_SCOPE)
 
-  add_library(AvCodec SHARED IMPORTED GLOBAL)
-  add_library(AvDevice SHARED IMPORTED GLOBAL)
-  add_library(AvFilter SHARED IMPORTED GLOBAL)
-  add_library(AvFormat SHARED IMPORTED GLOBAL)
-  add_library(AvResample SHARED IMPORTED GLOBAL)
-  add_library(AvUtil SHARED IMPORTED GLOBAL)
-  add_library(SwResample SHARED IMPORTED GLOBAL)
-  add_library(SwScale SHARED IMPORTED GLOBAL)
+  add_library(AvCodec ${FFMPEG_LIBRARY_TYPE} IMPORTED GLOBAL)
+  add_library(AvDevice ${FFMPEG_LIBRARY_TYPE} IMPORTED GLOBAL)
+  add_library(AvFilter ${FFMPEG_LIBRARY_TYPE} IMPORTED GLOBAL)
+  add_library(AvFormat ${FFMPEG_LIBRARY_TYPE} IMPORTED GLOBAL)
+  add_library(AvResample ${FFMPEG_LIBRARY_TYPE} IMPORTED GLOBAL)
+  add_library(AvUtil ${FFMPEG_LIBRARY_TYPE} IMPORTED GLOBAL)
+  add_library(SwResample ${FFMPEG_LIBRARY_TYPE} IMPORTED GLOBAL)
+  add_library(SwScale ${FFMPEG_LIBRARY_TYPE} IMPORTED GLOBAL)
   set_target_properties(AvCodec PROPERTIES IMPORTED_LOCATION ${LIBAVCODEC_PATH})
   set_target_properties(AvDevice PROPERTIES IMPORTED_LOCATION ${LIBAVDEVICE_PATH})
   set_target_properties(AvFilter PROPERTIES IMPORTED_LOCATION ${LIBAVFILTER_PATH})
@@ -553,6 +558,10 @@ if(ANDROID_WINDOWS)
   set(GYP_COMMAND "${CMAKE_SOURCE_DIR}/nfdecoder_env/Scripts/gyp.exe")
 endif()
 
+# Add custom code changes to UDT
+execute_process(COMMAND git apply ${CMAKE_CURRENT_SOURCE_DIR}/udt.patch
+                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/universal-dash-transmuxer)
+
 # Generate Cmake from GYP in UDT
 execute_process(COMMAND ${GYP_COMMAND} -f cmake
   ${CMAKE_CURRENT_SOURCE_DIR}/universal-dash-transmuxer/library/DashToHls.gyp
@@ -566,6 +575,8 @@ execute_process(COMMAND python ../tools/fix-udt-cmake.py
 set(BUILD_SHARED_LIBS OFF)
 set(BUILD_SAMPLES OFF)
 set(BUILD_TESTS OFF)
+set(SHARED_PTR_INCLUDE "\#include <memory>")
+set(SHARED_PTR_DEFINE "using std::shared_ptr")
 add_subdirectory(universal-dash-transmuxer/library/out/Default)
 
 ### TinySoundFont a convenient MIDI lib

@@ -1,0 +1,153 @@
+diff --git a/library/DashToHls.gyp b/library/DashToHls.gyp
+index 638626f..5101b89 100644
+--- a/library/DashToHls.gyp
++++ b/library/DashToHls.gyp
+@@ -79,8 +79,70 @@
+         'bit_reader.h',
+         'utilities.h',
+         'utilities.cc',
+-        '<!@(find dash -type f -name "*.h")',
+-        '<!@(find dash -type f -name "*.cc" ! -name "*_test.cc")',
++        'dash/audio_sample_entry_contents.h',
++        'dash/avc_decoder_configuration_record.h',
++        'dash/avc1_contents.h',
++        'dash/avcc_contents.h',
++        'dash/base_descriptor.h',
++        'dash/box_contents.h',
++        'dash/box_type.h',
++        'dash/box.h',
++        'dash/dash_parser.h',
++        'dash/decoder_descriptor.h',
++        'dash/elementary_stream_descriptor.h',
++        'dash/elst_contents.h',
++        'dash/esds_contents.h',
++        'dash/full_box_contents.h',
++        'dash/mdat_contents.h',
++        'dash/mdhd_contents.h',
++        'dash/mp4a_contents.h',
++        'dash/mvhd_contents.h',
++        'dash/pssh_contents.h',
++        'dash/saio_contents.h',
++        'dash/saiz_contents.h',
++        'dash/sample_entry_contents.h',
++        'dash/sidx_contents.h',
++        'dash/stsd_contents.h',
++        'dash/stsz_contents.h',
++        'dash/tenc_contents.h',
++        'dash/tfdt_contents.h',
++        'dash/tfhd_contents.h',
++        'dash/trex_contents.h',
++        'dash/trun_contents.h',
++        'dash/unknown_contents.h',
++        'dash/video_sample_entry_contents.h',
++        'dash/audio_sample_entry_contents.cc',
++        'dash/avc_decoder_configuration_record.cc',
++        'dash/avc1_contents.cc',
++        'dash/avcc_contents.cc',
++        'dash/base_descriptor.cc',
++        'dash/box_contents.cc',
++        'dash/box_type.cc',
++        'dash/box.cc',
++        'dash/dash_parser.cc',
++        'dash/decoder_descriptor.cc',
++        'dash/elementary_stream_descriptor.cc',
++        'dash/elst_contents.cc',
++        'dash/esds_contents.cc',
++        'dash/full_box_contents.cc',
++        'dash/mdat_contents.cc',
++        'dash/mdhd_contents.cc',
++        'dash/mp4a_contents.cc',
++        'dash/mvhd_contents.cc',
++        'dash/pssh_contents.cc',
++        'dash/saio_contents.cc',
++        'dash/saiz_contents.cc',
++        'dash/sample_entry_contents.cc',
++        'dash/sidx_contents.cc',
++        'dash/stsd_contents.cc',
++        'dash/stsz_contents.cc',
++        'dash/tenc_contents.cc',
++        'dash/tfdt_contents.cc',
++        'dash/tfhd_contents.cc',
++        'dash/trex_contents.cc',
++        'dash/trun_contents.cc',
++        'dash/unknown_contents.cc',
++        'dash/video_sample_entry_contents.cc',
+       ],
+     },
+     {
+@@ -96,8 +158,16 @@
+       'sources': [
+         'utilities.h',
+         'utilities.cc',
+-        '<!@(find ps -type f -name "*.h")',
+-        '<!@(find ps -type f -name "*.cc" ! -name "*_test.cc")',
++        'ps/nalu.h',
++        'ps/pes.h',
++        'ps/program_stream_out.h',
++        'ps/psm.h',
++        'ps/system_header.h',
++        'ps/nalu.cc',
++        'ps/pes.cc',
++        'ps/program_stream_out.cc',
++        'ps/psm.cc',
++        'ps/system_header.cc',
+       ],
+     },
+     {
+diff --git a/library/compatibility.h b/library/compatibility.h
+index 8140329..6b67a96 100644
+--- a/library/compatibility.h
++++ b/library/compatibility.h
+@@ -25,6 +25,7 @@ limitations under the License.
+ #include SHARED_PTR_INCLUDE
+ #endif  // SHARED_PTR_INCLUDE
+ 
++#include <memory>
+ namespace dash2hls {
+ #if C98
+ #ifdef SHARED_PTR_DEFINE
+diff --git a/library/dash/dash_parser.cc b/library/dash/dash_parser.cc
+index c13479e..3b75ec9 100644
+--- a/library/dash/dash_parser.cc
++++ b/library/dash/dash_parser.cc
+@@ -44,6 +44,9 @@ size_t DashParser::AddToSpilloverIfNeeded(const uint8_t* buffer,
+ }
+ 
+ void DashParser::AddSpillover(const uint8_t* buffer, size_t length) {
++  if (!length) {
++    return;
++  }
+   size_t current_spillover_position = spillover_.size();
+   spillover_.resize(current_spillover_position + length);
+   memcpy(&spillover_[current_spillover_position], buffer, length);
+diff --git a/library/utilities.cc b/library/utilities.cc
+index e972dea..74866db 100644
+--- a/library/utilities.cc
++++ b/library/utilities.cc
+@@ -83,12 +83,14 @@ string PrettyPrintValue(uint32_t value) {
+ }
+ 
+ #if !C98
++#ifndef __linux__
+ string PrettyPrintValue(size_t value) {
+   char buffer[kBufferSize];
+   snprintf(buffer, sizeof(buffer), "%zu", value);
+   return buffer;
+ }
+ #endif
++#endif
+ 
+ string PrettyPrintValue(uint64_t value) {
+   char buffer[kBufferSize];
+diff --git a/library/utilities.h b/library/utilities.h
+index 19ea3a0..02914d2 100644
+--- a/library/utilities.h
++++ b/library/utilities.h
+@@ -18,6 +18,7 @@ limitations under the License.
+ #define DASHTOHLS_UTILITIES_H_
+ 
+ #include <arpa/inet.h>
++#include <cstring>
+ #include <string>
+ #include <utility>
+ 

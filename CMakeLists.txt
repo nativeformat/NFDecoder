@@ -4,17 +4,16 @@ project(NFDecoder)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_FLAGS
-  "${CMAKE_CXX_FLAGS} -std=c++11")
-set(CMAKE_CXX_FLAGS
   "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations")
 set(CMAKE_CXX_FLAGS
-  "${CMAKE_CXX_FLAGS} -Wno-tautological-undefined-compare")
-set(CMAKE_CXX_FLAGS
   "${CMAKE_CXX_FLAGS} -Wno-unused-local-typedefs")
-set(CMAKE_CXX_FLAGS
-  "${CMAKE_CXX_FLAGS} -Wno-shorten-64-to-32")
-set(CMAKE_CXX_FLAGS
-  "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+if(LLVM_STDLIB)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ \
+  -Wno-tautological-undefined-compare -Wno-shorten-64-to-32")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+else()
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
+endif()
 set(CMAKE_MODULE_PATH
   ${CMAKE_MODULE_PATH}
   ${CMAKE_CURRENT_SOURCE_DIR}/cmake-modules)

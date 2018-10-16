@@ -100,12 +100,8 @@ int main(int argc, char *argv[]) {
             if (remaining_url.find(client_id_query_key + http_query_key_value_separator) ==
                 std::string::npos) {
               auto new_request = nativeformat::http::createRequest(request);
-              new_request->setUrl(new_request->url() +
-                                  (remaining_url.find(http_query_begin) == std::string::npos
-                                       ? http_query_begin
-                                       : http_query_separator) +
-                                  client_id_query_key + http_query_key_value_separator +
-                                  "abf3280d6d110fbafef097d8d5d36c25");
+              // API Key must be in URL passed in
+              new_request->setUrl(new_request->url());
               callback(new_request);
               return;
             }

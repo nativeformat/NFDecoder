@@ -42,11 +42,6 @@ extern const std::set<std::string> NF_DECODER_OGG_MIME_TYPES;
 extern const std::string NF_DECODER_MIME_TYPE_WAV;
 extern const std::set<std::string> NF_DECODER_WAV_MIME_TYPES;
 
-// SPOTIFY
-extern const std::string NF_DECODER_MIME_TYPE_SPOTIFY;
-extern const std::string NF_DECODER_MIME_TYPE_AUDIO_SPOTIFY;
-extern const std::set<std::string> NF_DECODER_SPOTIFY_MIME_TYPES;
-
 // FLAC
 extern const std::string NF_DECODER_MIME_TYPE_FLAC;
 extern const std::string NF_DECODER_MIME_TYPE_AUDIO_FLAC;

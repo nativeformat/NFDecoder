@@ -22,6 +22,7 @@
 
 #include <NFDecoder/Decoder.h>
 
+#include <atomic>
 #include <memory>
 #include <string>
 

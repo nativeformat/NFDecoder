@@ -25,8 +25,6 @@
 namespace nativeformat {
 namespace decoder {
 
-extern const std::string SPOTIFY_MANIFEST_ERROR_DOMAIN;
-
 class Manifest {
  public:
   typedef std::function<void(bool success)> LOAD_MANIFEST_CALLBACK;

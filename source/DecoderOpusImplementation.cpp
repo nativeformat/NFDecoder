@@ -29,10 +29,10 @@ namespace decoder {
 static const int OPUS_READ_SIZE = 32768;  // Read 32kB at a time
 
 const OpusFileCallbacks DecoderOpusImplementation::callbacks{
-    .read = &DecoderOpusImplementation::opus_read,
-    .seek = &DecoderOpusImplementation::opus_seek,
-    .close = &DecoderOpusImplementation::opus_close,
-    .tell = &DecoderOpusImplementation::opus_tell};
+    &DecoderOpusImplementation::opus_read,
+    &DecoderOpusImplementation::opus_seek,
+    &DecoderOpusImplementation::opus_tell,
+    &DecoderOpusImplementation::opus_close};
 
 DecoderOpusImplementation::DecoderOpusImplementation(std::shared_ptr<DataProvider> &data_provider)
     : _data_provider(data_provider),

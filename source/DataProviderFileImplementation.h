@@ -23,6 +23,7 @@
 #include <NFDecoder/DataProvider.h>
 #include <NFDecoder/DataProviderFactory.h>
 
+#include <atomic>
 #include <string>
 
 namespace nativeformat {

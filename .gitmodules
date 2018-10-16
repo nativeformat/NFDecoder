@@ -9,7 +9,7 @@
 	url = https://github.com/minorninth/libresample.git
 [submodule "libraries/NFHTTP"]
 	path = libraries/NFHTTP
-	url = git@github.com:spotify/NFHTTP.git
+	url = https://github.com/spotify/NFHTTP.git
 [submodule "tools/gyp"]
 	path = tools/gyp
 	url = https://chromium.googlesource.com/external/gyp

@@ -39,6 +39,13 @@ class NFBuildOSX(NFBuild):
         self.project_file = os.path.join(
             self.build_directory,
             'NFDecoder.xcodeproj')
+        self.cmake_binary = 'cmake'
+        self.clang_format_binary = 'clang-format'
+        self.android_ndk_folder = '/usr/local/share/android-ndk'
+        self.ninja_binary = 'ninja'
+        self.ios = False
+        self.android = False
+        self.android_arm = False
 
     def generateProject(self,
                         ub_sanitizer=False,
@@ -47,8 +54,12 @@ class NFBuildOSX(NFBuild):
                         address_sanitizer=False,
                         use_ffmpeg=False,
                         android=False,
-                        android_arm=False):
+                        android_arm=False,
+                        gcc=False):
         self.use_ninja = android or android_arm
+        self.android = android
+        self.android_arm = android_arm
+        self.ios = ios
         cmake_call = [
             self.cmake_binary,
             '..']

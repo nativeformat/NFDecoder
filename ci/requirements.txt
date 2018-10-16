@@ -1,5 +1,8 @@
 pyyaml
 flake8
 cmakelint
+pycparser
 pysoundfile
 numpy
+requests
+
