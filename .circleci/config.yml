@@ -38,7 +38,7 @@ jobs:
           destination: libNFDecoder-androidArm64.zip
   buildmac:
     macos:
-      xcode: "11.5.0"
+      xcode: "11.2.1"
     steps:
       - checkout
       - run: git submodule sync
@@ -51,7 +51,7 @@ jobs:
           destination: libNFDecoder.zip
   buildmacios:
     macos:
-      xcode: "11.5.0"
+      xcode: "11.2.1"
     steps:
       - checkout
       - run: git submodule sync
@@ -64,7 +64,7 @@ jobs:
           destination: libNFDecoder.zip
   buildmacandroid:
     macos:
-      xcode: "11.5.0"
+      xcode: "11.2.1"
     steps:
       - checkout
       - run: git submodule sync
