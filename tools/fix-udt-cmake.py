@@ -42,7 +42,7 @@ def main():
 
   for line in fileinput.input(cmakelists, inplace=True, backup='.bak'):
     line = line.replace('USE_AVFRAMEWORK;', '')
-    line = line.replace('-arch x86_64', '')
+    line = line.replace('-arch i386', '-arch x86_64')
     line = line.replace('DashToHls_osx.pch',
       cmake_current_source_dir +
       '/universal-dash-transmuxer/library/DashToHls_osx.pch')
