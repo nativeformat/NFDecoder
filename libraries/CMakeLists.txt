@@ -570,7 +570,7 @@ execute_process(COMMAND ${GYP_COMMAND} -f cmake
   WORKING_DIRECTORY  ${CMAKE_CURRENT_SOURCE_DIR}
   RESULT_VARIABLE retcode)
 if(NOT "${retcode}" STREQUAL "0")
-  message( FATAL_ERROR "Could not generate CMake via GYP for UDT");
+  message(FATAL_ERROR "Could not generate CMake via GYP for UDT")
 endif()
 
 execute_process(COMMAND python ../tools/fix-udt-cmake.py
