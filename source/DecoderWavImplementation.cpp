@@ -173,8 +173,7 @@ void DecoderWavImplementation::decode(long frames, const DECODE_CALLBACK &decode
         return;
       }
     }
-  })
-      .detach();
+  }).detach();
 }
 
 bool DecoderWavImplementation::eof() {

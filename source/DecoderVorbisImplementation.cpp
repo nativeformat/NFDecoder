@@ -178,8 +178,7 @@ void DecoderVorbisImplementation::decode(long frames, const DECODE_CALLBACK &dec
     strong_this->_frame_index = frame_index + read_frames;
     decode_callback(frame_index, read_frames, interleaved_samples);
     free(interleaved_samples);
-  })
-      .detach();
+  }).detach();
 }
 
 bool DecoderVorbisImplementation::eof() {

@@ -210,8 +210,7 @@ void DecoderMidiImplementation::decode(long frames, const DECODE_CALLBACK &decod
       tsf_render_float(sounds, output.data() + output_index, frame_block, 0);
     }
     decode_callback(frame_index, frames - frames_left, output.data());
-  })
-      .detach();
+  }).detach();
 }
 
 bool DecoderMidiImplementation::eof() {

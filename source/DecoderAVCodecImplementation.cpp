@@ -268,8 +268,7 @@ void DecoderAVCodecImplementation::decode(long frames, const DECODE_CALLBACK &de
   auto strong_this = shared_from_this();
   std::thread([strong_this, decode_callback, frames] {
     strong_this->runDecodeThread(frames, decode_callback);
-  })
-      .detach();
+  }).detach();
 }
 
 void DecoderAVCodecImplementation::runDecodeThread(long frames,

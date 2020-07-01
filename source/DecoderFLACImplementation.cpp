@@ -145,8 +145,7 @@ void DecoderFLACImplementation::decode(long frames, const DECODE_CALLBACK &decod
                                   strong_this->_samples.begin() + read_samples);
       strong_this->_frame_index = frame_index + read_frames;
     }
-  })
-      .detach();
+  }).detach();
 }
 
 bool DecoderFLACImplementation::eof() {

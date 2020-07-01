@@ -334,8 +334,7 @@ void DecoderAudioConverterImplementation::decode(long frames,
     decode_callback(frame_index, read_frames, samples);
     free(samples);
     strong_this->_frame_index = frame_index + read_frames;
-  })
-      .detach();
+  }).detach();
 }
 
 bool DecoderAudioConverterImplementation::eof() {

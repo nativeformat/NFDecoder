@@ -222,19 +222,20 @@ void DecoderDashToHLSTransmuxerImplementation::decode(long frames,
       std::condition_variable conditional_variable;
       std::mutex mutex;
       bool error = false, loaded = false;
-      strong_this->loadSegment(i,
-                               [&conditional_variable, &mutex, &error, &loaded](
-                                   const std::string &domain, int error_code) {
-                                 std::lock_guard<std::mutex> lock(mutex);
-                                 loaded = true;
-                                 error = true;
-                                 conditional_variable.notify_one();
-                               },
-                               [&conditional_variable, &mutex, &loaded]() {
-                                 std::lock_guard<std::mutex> lock(mutex);
-                                 loaded = true;
-                                 conditional_variable.notify_one();
-                               });
+      strong_this->loadSegment(
+          i,
+          [&conditional_variable, &mutex, &error, &loaded](const std::string &domain,
+                                                           int error_code) {
+            std::lock_guard<std::mutex> lock(mutex);
+            loaded = true;
+            error = true;
+            conditional_variable.notify_one();
+          },
+          [&conditional_variable, &mutex, &loaded]() {
+            std::lock_guard<std::mutex> lock(mutex);
+            loaded = true;
+            conditional_variable.notify_one();
+          });
       std::unique_lock<std::mutex> lock(mutex);
       while (!loaded) {
         conditional_variable.wait(lock);
@@ -273,8 +274,7 @@ void DecoderDashToHLSTransmuxerImplementation::decode(long frames,
     strong_this->_samples.erase(
         strong_this->_samples.begin(),
         strong_this->_samples.begin() + (output_frames * strong_this->channels()));
-  })
-      .detach();
+  }).detach();
 }
 
 bool DecoderDashToHLSTransmuxerImplementation::eof() {
@@ -350,8 +350,7 @@ void DecoderDashToHLSTransmuxerImplementation::load(
           }
         },
         decoder_error_callback);
-  })
-      .detach();
+  }).detach();
 }
 
 void DecoderDashToHLSTransmuxerImplementation::flush() {

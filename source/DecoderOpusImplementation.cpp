@@ -173,8 +173,7 @@ void DecoderOpusImplementation::decode(long frames, const DECODE_CALLBACK &decod
     }
     decode_callback(frame_index, read_frames, samples);
     free(samples);
-  })
-      .detach();
+  }).detach();
 }
 
 bool DecoderOpusImplementation::eof() {
