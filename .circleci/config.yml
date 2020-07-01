@@ -73,7 +73,7 @@ jobs:
       - run: sudo spctl --master-disable
       - run:
           name: Build Android
-          command: BUILD_ANDROID=1 sh ci/osx.sh build
+          command: BUILD_ANDROID=1 USE_CURL=1 sh ci/osx.sh build
       - store_artifacts:
           path: libNFDecoder-androidx86.zip
           destination: libNFDecoder-androidx86.zip
