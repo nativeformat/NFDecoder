@@ -563,10 +563,15 @@ execute_process(COMMAND git apply ${CMAKE_CURRENT_SOURCE_DIR}/udt.patch
                 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/universal-dash-transmuxer)
 
 # Generate Cmake from GYP in UDT
+message(STATUS "generating cmake from gyp in UDT")
 execute_process(COMMAND ${GYP_COMMAND} -f cmake
   ${CMAKE_CURRENT_SOURCE_DIR}/universal-dash-transmuxer/library/DashToHls.gyp
   --depth ${CMAKE_CURRENT_SOURCE_DIR}/universal-dash-transmuxer/library
-  WORKING_DIRECTORY  ${CMAKE_CURRENT_SOURCE_DIR})
+  WORKING_DIRECTORY  ${CMAKE_CURRENT_SOURCE_DIR}
+  RESULT_VARIABLE retcode)
+if(NOT "${retcode}" STREQUAL "0")
+  message( FATAL_ERROR "Could not generate CMake via GYP for UDT");
+endif()
 
 execute_process(COMMAND python ../tools/fix-udt-cmake.py
   "${CMAKE_CURRENT_SOURCE_DIR}"
