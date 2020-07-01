@@ -1,8 +1,0 @@
-brew "clang-format"
-brew "cmake"
-brew "ninja"
-brew "wget"
-brew "ffmpeg"
-brew "x264"
-brew "lame"
-brew "lcov"

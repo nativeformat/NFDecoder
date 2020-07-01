@@ -26,8 +26,7 @@ set -e
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 
 # Install system dependencies
-HOMEBREW_BREWFILE=${DIR}/Brewfile
-brew bundle --file=${HOMEBREW_BREWFILE}
+brew install clang-format cmake ninja wget ffmpeg x264 lame lcov
 
 # Update submodules
 git submodule sync
