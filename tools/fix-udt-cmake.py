@@ -42,6 +42,8 @@ def main():
 
   for line in fileinput.input(cmakelists, inplace=True, backup='.bak'):
     line = line.replace('USE_AVFRAMEWORK;', '')
+    # let cmake figure out the arch
+    line = line.replace('-arch i386', '')
     line = line.replace('-arch x86_64', '')
     line = line.replace('DashToHls_osx.pch',
       cmake_current_source_dir +

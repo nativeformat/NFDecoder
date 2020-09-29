@@ -586,10 +586,6 @@ add_subdirectory(universal-dash-transmuxer/library/out/Default)
 
 ### TinySoundFont a convenient MIDI lib
 set(TINYSOUNDFONT_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/TinySoundFont)
-# Add custom code changes to TinySoundFont
-execute_process(COMMAND git apply ${CMAKE_CURRENT_SOURCE_DIR}/TinySoundFont.patch
-WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/TinySoundFont)
-
 add_library(TinySoundFont INTERFACE)
 target_include_directories(TinySoundFont INTERFACE ${TINYSOUNDFONT_INCLUDE_DIR})
 
