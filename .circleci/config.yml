@@ -7,7 +7,7 @@ jobs:
       - checkout
       - run:
           name: Build Linux with clang
-          command: sh ci/linux.sh clang_build
+          command: USE_CURL=1 sh ci/linux.sh clang_build
       - store_artifacts:
           path: build/output/libNFDecoder.zip
           destination: libNFDecoder.zip
@@ -18,7 +18,7 @@ jobs:
       - checkout
       - run:
           name: Build Linux with gcc
-          command: sh ci/linux.sh gcc_build
+          command: USE_CURL=1 sh ci/linux.sh gcc_build
       - store_artifacts:
           path: build/output/libNFDecoder.zip
           destination: libNFDecoder.zip
@@ -29,7 +29,7 @@ jobs:
       - checkout
       - run:
           name: Build Android
-          command: BUILD_ANDROID=1 sh ci/linux.sh build
+          command: BUILD_ANDROID=1 USE_CURL=1 sh ci/linux.sh build
       - store_artifacts:
           path: libNFDecoder-androidx86.zip
           destination: libNFDecoder-androidx86.zip
@@ -38,35 +38,44 @@ jobs:
           destination: libNFDecoder-androidArm64.zip
   buildmac:
     macos:
-      xcode: "11.2.1"
+      xcode: "11.5.0"
+    environment:
+      HOMEBREW_NO_AUTO_UPDATE: 1
     steps:
       - checkout
+      - run: brew update
       - run: git submodule sync
       - run: git submodule update --init --recursive
       - run:
           name: Build OSX
-          command: sh ci/osx.sh build
+          command: USE_CURL=1 sh ci/osx.sh build
       - store_artifacts:
           path: build/output/libNFDecoder.zip
           destination: libNFDecoder.zip
   buildmacios:
     macos:
-      xcode: "11.2.1"
+      xcode: "11.5.0"
+    environment:
+      HOMEBREW_NO_AUTO_UPDATE: 1
     steps:
       - checkout
+      - run: brew update
       - run: git submodule sync
       - run: git submodule update --init --recursive
       - run:
           name: Build iOS
-          command: BUILD_IOS=1 sh ci/osx.sh build
+          command: BUILD_IOS=1 USE_CURL=1 sh ci/osx.sh build
       - store_artifacts:
           path: build/output/libNFDecoder.zip
           destination: libNFDecoder.zip
   buildmacandroid:
     macos:
-      xcode: "11.2.1"
+      xcode: "11.5.0"
+    environment:
+      HOMEBREW_NO_AUTO_UPDATE: 1
     steps:
       - checkout
+      - run: brew update
       - run: git submodule sync
       - run: git submodule update --init --recursive
       # Android NDK does not pass.

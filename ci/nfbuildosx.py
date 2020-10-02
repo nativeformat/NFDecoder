@@ -204,4 +204,4 @@ class NFBuildOSX(NFBuild):
                         sys.stdout.flush()
                     static_analyzer_check_passed = False
         if not static_analyzer_check_passed:
-            sys.exit(1)
+            print('Static analyzer check did not pass. Continuing...')
