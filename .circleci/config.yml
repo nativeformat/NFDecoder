@@ -38,7 +38,7 @@ jobs:
           destination: libNFDecoder-androidArm64.zip
   buildmac:
     macos:
-      xcode: "11.2.1"
+      xcode: "11.5.0"
     environment:
       HOMEBREW_NO_AUTO_UPDATE: 1
     steps:
@@ -54,7 +54,7 @@ jobs:
           destination: libNFDecoder.zip
   buildmacios:
     macos:
-      xcode: "11.2.1"
+      xcode: "11.5.0"
     environment:
       HOMEBREW_NO_AUTO_UPDATE: 1
     steps:
@@ -70,7 +70,7 @@ jobs:
           destination: libNFDecoder.zip
   buildmacandroid:
     macos:
-      xcode: "11.2.1"
+      xcode: "11.5.0"
     environment:
       HOMEBREW_NO_AUTO_UPDATE: 1
     steps:
