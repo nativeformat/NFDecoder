@@ -53,7 +53,7 @@ git submodule update --init --recursive
 # Undo homebrew's potential meddling: https://github.com/pypa/pip/issues/5048
 # Homebrew will upgrade python to 3.8, but virtualenv hard codes the path to 3.7
 # in its shebang.
-pip3 uninstall virtualenv && pip3 install virtualenv
+pip3 uninstall --yes virtualenv && pip3 install virtualenv
 
 # Install virtualenv
 virtualenv --python=$(which python2) nfdecoder_env
