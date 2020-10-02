@@ -19,11 +19,13 @@ set(CMAKE_MODULE_PATH
   ${CMAKE_CURRENT_SOURCE_DIR}/cmake-modules)
 
 if(DEFINED  CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} cache string
-    "Choose the type of build: None, Debug, or Release")
+  set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING
+    "Choose the type of build: None, Debug, or Release"
+    FORCE)
 else()
-  set(CMAKE_BUILD_TYPE Debug cache string
-    "Choose the type of build: None, Debug, or Release")
+  set(CMAKE_BUILD_TYPE Debug CACHE STRING
+    "Choose the type of build: None, Debug, or Release"
+    FORCE)
 endif()
 
 if(INCLUDE_LGPL)
