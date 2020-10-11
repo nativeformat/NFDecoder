@@ -55,6 +55,13 @@ The interfaces are as follows:
 add_subdirectory(NFDecoder)
 ```
 
+and, it is required to install `gyp`.
+
+```shell
+$ cd tools/gyp/
+$ python setup.py install
+```
+
 ### For iOS/OSX
 Generate an [Xcode](https://developer.apple.com/xcode/) project from the Cmake project like so:
 ```shell
