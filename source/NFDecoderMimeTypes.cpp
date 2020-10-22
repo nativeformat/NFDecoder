@@ -49,7 +49,7 @@ const std::set<std::string> NF_DECODER_FLAC_MIME_TYPES({NF_DECODER_MIME_TYPE_FLA
 const std::string NF_DECODER_MIME_TYPE_DASH_MP4("dash/mp4");
 const std::set<std::string> NF_DECODER_DASH_MP4_MIME_TYPES({NF_DECODER_MIME_TYPE_DASH_MP4});
 
-const std::string NF_DECODER_MIME_TYPE_MP3("audio/mp3");
+const std::string NF_DECODER_MIME_TYPE_MP3("audio/mpeg");
 const std::set<std::string> NF_DECODER_MP3_MIME_TYPES({NF_DECODER_MIME_TYPE_MP3});
 
 const std::string NF_DECODER_MIME_TYPE_MIDI("midi");
