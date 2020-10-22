@@ -83,7 +83,8 @@ void FactoryTransmuxerImplementation::createDecoder(
           data_provider->seek(DASH_FILE_INDICATOR_OFFSET, SEEK_SET);
           char FILE_INDICATOR[sizeof(DASH_FILE_INDICATOR)];
           data_provider->read(&FILE_INDICATOR, sizeof(char), sizeof(FILE_INDICATOR));
-          bool is_dash_file = strcmp(DASH_FILE_INDICATOR, FILE_INDICATOR) == 0;
+          std::string str = DASH_FILE_INDICATOR;
+          bool is_dash_file = str.compare(FILE_INDICATOR) == 0;
           data_provider->seek(0, SEEK_SET);
 
           if (!is_dash_file) {
