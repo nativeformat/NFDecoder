@@ -28,17 +28,17 @@ import re
 
 def main():
   if len(sys.argv) < 2:
-    print 'Missing input paths'
+    print('Missing input paths')
     return
   cmake_current_source_dir = sys.argv[1]
   cmakelists = os.path.join(cmake_current_source_dir,
     'universal-dash-transmuxer/library/out/Default/CMakeLists.txt')
-  print 'CMAKE CURRENT SOURCE DIR: ' + cmake_current_source_dir
-  print 'CMAKELISTS: ' + cmakelists
-  print os.listdir(cmake_current_source_dir)
-  print os.listdir(cmake_current_source_dir + '/universal-dash-transmuxer')
-  print os.listdir(cmake_current_source_dir + '/universal-dash-transmuxer/library')
-  print os.listdir(cmake_current_source_dir + '/universal-dash-transmuxer/library/out')
+  print('CMAKE CURRENT SOURCE DIR: ' + cmake_current_source_dir)
+  print('CMAKELISTS: ' + cmakelists)
+  print(os.listdir(cmake_current_source_dir))
+  print(os.listdir(cmake_current_source_dir + '/universal-dash-transmuxer'))
+  print(os.listdir(cmake_current_source_dir + '/universal-dash-transmuxer/library'))
+  print(os.listdir(cmake_current_source_dir + '/universal-dash-transmuxer/library/out'))
 
   for line in fileinput.input(cmakelists, inplace=True, backup='.bak'):
     line = line.replace('USE_AVFRAMEWORK;', '')
@@ -53,7 +53,7 @@ def main():
       '/universal-dash-transmuxer/library/DashToHls_ios.pch')
     if os.name == 'nt':
       line = line.replace('\\', '/')
-    print line,
+    print(line)
 
 
 if __name__ == "__main__":
