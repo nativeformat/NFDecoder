@@ -558,31 +558,36 @@ if(ANDROID_WINDOWS)
   set(GYP_COMMAND "${CMAKE_SOURCE_DIR}/nfdecoder_env/Scripts/gyp.exe")
 endif()
 
-# Add custom code changes to UDT
-execute_process(COMMAND git apply ${CMAKE_CURRENT_SOURCE_DIR}/udt.patch
-                WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/universal-dash-transmuxer)
-
 # Generate Cmake from GYP in UDT
-message(STATUS "generating cmake from gyp in UDT")
-execute_process(COMMAND ${GYP_COMMAND} -f cmake
-  ${CMAKE_CURRENT_SOURCE_DIR}/universal-dash-transmuxer/library/DashToHls.gyp
-  --depth ${CMAKE_CURRENT_SOURCE_DIR}/universal-dash-transmuxer/library
-  WORKING_DIRECTORY  ${CMAKE_CURRENT_SOURCE_DIR}
-  RESULT_VARIABLE retcode)
-if(NOT "${retcode}" STREQUAL "0")
-  message(FATAL_ERROR "Could not generate CMake via GYP for UDT")
+if(NOT DEFINED INCLUDE_UDT)
+  set(INCLUDE_UDT ON)
 endif()
-
-execute_process(COMMAND python ../tools/fix-udt-cmake.py
-  "${CMAKE_CURRENT_SOURCE_DIR}"
-   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+if(INCLUDE_UDT)
+  # Add custom code changes to UDT
+  execute_process(COMMAND git apply ${CMAKE_CURRENT_SOURCE_DIR}/udt.patch
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/universal-dash-transmuxer)
+  message(STATUS "generating cmake from gyp in UDT")
+  execute_process(COMMAND ${GYP_COMMAND} -f cmake
+    ${CMAKE_CURRENT_SOURCE_DIR}/universal-dash-transmuxer/library/DashToHls.gyp
+    --depth ${CMAKE_CURRENT_SOURCE_DIR}/universal-dash-transmuxer/library
+    WORKING_DIRECTORY  ${CMAKE_CURRENT_SOURCE_DIR}
+    RESULT_VARIABLE retcode)
+  if(NOT "${retcode}" STREQUAL "0")
+    message(FATAL_ERROR "Could not generate CMake via GYP for UDT")
+  endif()
+  execute_process(COMMAND python ../tools/fix-udt-cmake.py
+    "${CMAKE_CURRENT_SOURCE_DIR}"
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+endif()
 
 set(BUILD_SHARED_LIBS OFF)
 set(BUILD_SAMPLES OFF)
 set(BUILD_TESTS OFF)
 set(SHARED_PTR_INCLUDE "\#include <memory>")
 set(SHARED_PTR_DEFINE "using std::shared_ptr")
-add_subdirectory(universal-dash-transmuxer/library/out/Default)
+if(INCLUDE_UDT)
+  add_subdirectory(universal-dash-transmuxer/library/out/Default)
+endif()
 
 ### TinySoundFont a convenient MIDI lib
 set(TINYSOUNDFONT_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/TinySoundFont)
