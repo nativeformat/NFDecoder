@@ -34,7 +34,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
 # has nothing to do with the install itself! Just continue and hope the build
 # fails if one of these tools is not installed.
 if ! HOMEBREW_NO_AUTO_UPDATE=1 brew install \
-    clang-format@10 \
+    clang-format \
     cmake \
     ninja \
     wget \
@@ -74,7 +74,7 @@ if [ -n "$BUILD_IOS" ]; then
     python ci/ios.py "$@"
 else
     if [ -n "$BUILD_ANDROID" ]; then
-        brew cask install android-ndk
+        brew install android-ndk
         python ci/android.py "$@"
     else
         python ci/osx.py "$@"
