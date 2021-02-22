@@ -363,6 +363,7 @@ foreach(src_file ${CELT_SOURCES} ${SILK_SOURCES} ${OPUS_SOURCES})
 endforeach(src_file)
 
 add_library(opus STATIC ${ALL_OPUS_SOURCES})
+target_compile_options(opus PRIVATE "-Wno-null-pointer-arithmetic")
 
 ## OPUSFILE
 set(OPUSFILE_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/opusfile/include CACHE STRING "opusfile includes" FORCE)
@@ -474,6 +475,7 @@ add_library(libresample STATIC libresample/src/configtemplate.h
                                libresample/src/resamplesubs.c
                                ${libresample_CONFIG_FILE})
 target_include_directories(libresample PUBLIC ${libresample_INCLUDE_DIRECTORY} ${CMAKE_CURRENT_BINARY_DIR}/decoder)
+target_compile_options(libresample PRIVATE "-Wno-sign-compare")
 
 if(INCLUDE_LGPL)
   # TODO: Insert retrieval of FFMPEG here
