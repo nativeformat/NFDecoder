@@ -28,7 +28,11 @@ namespace decoder {
 
 DecoderNormalisationImplementation::DecoderNormalisationImplementation(
     const std::shared_ptr<Decoder> &wrapped_decoder, const double samplerate, const int channels)
-    : _wrapped_decoder(wrapped_decoder), _factor(0.0), _frame_index(0), _samplerate(samplerate), _channels(channels) {
+    : _wrapped_decoder(wrapped_decoder),
+      _factor(0.0),
+      _frame_index(0),
+      _samplerate(samplerate),
+      _channels(channels) {
   for (int i = 0; i < this->channels(); ++i) {
     _resampler_handlers[i] = nullptr;
   }
@@ -133,7 +137,8 @@ void DecoderNormalisationImplementation::decode(long frames,
           int decoder_channels = strong_this->_wrapped_decoder->channels();
           if (decoder_channels > strong_this->channels()) {
             // Copy the channels into stereo
-            int even_decoder_channels = decoder_channels - (decoder_channels % strong_this->channels());
+            int even_decoder_channels =
+                decoder_channels - (decoder_channels % strong_this->channels());
             for (long i = 0; i < input_frames; ++i) {
               for (int j = 0; j < even_decoder_channels; ++j) {
                 int normalised_channel = j % strong_this->channels();
@@ -151,7 +156,8 @@ void DecoderNormalisationImplementation::decode(long frames,
               }
             }
             // Lower the volume properly
-            float volume_factor = (decoder_channels / strong_this->channels()) + even_decoder_channels;
+            float volume_factor =
+                (decoder_channels / strong_this->channels()) + even_decoder_channels;
             for (long i = 0; i < input_frames; ++i) {
               for (int j = 0; j < strong_this->channels(); ++j) {
                 channel_samples[(i * strong_this->channels()) + j] /= volume_factor;
@@ -162,7 +168,8 @@ void DecoderNormalisationImplementation::decode(long frames,
             for (int i = 0; i < strong_this->channels(); ++i) {
               for (long j = 0; j < input_frames; ++j) {
                 if (i < decoder_channels) {
-                  channel_samples[(j * strong_this->channels()) + i] = samples[(j * decoder_channels) + i];
+                  channel_samples[(j * strong_this->channels()) + i] =
+                      samples[(j * decoder_channels) + i];
                 } else {
                   float sample = 0.0f;
                   for (int k = 0; k < decoder_channels; ++k) {
@@ -215,7 +222,8 @@ void DecoderNormalisationImplementation::decode(long frames,
                 // This shouldn't happen... but if it does do a regular copy
                 long max_frames = std::min(new_frames, input_frames);
                 for (long j = 0; j < max_frames; ++j) {
-                  resampled_output[(j * strong_this->channels()) + i] = channel_samples[(j * strong_this->channels()) + i];
+                  resampled_output[(j * strong_this->channels()) + i] =
+                      channel_samples[(j * strong_this->channels()) + i];
                 }
               }
             }
@@ -245,7 +253,8 @@ void DecoderNormalisationImplementation::decode(long frames,
           free(resampled_output);
           free(channel_samples);
 
-          sent_frames = (resampled_output_used_samples + cached_buffer_samples) / strong_this->channels();
+          sent_frames =
+              (resampled_output_used_samples + cached_buffer_samples) / strong_this->channels();
 
           strong_this->_frame_index = current_frame_index + sent_frames;
         }
