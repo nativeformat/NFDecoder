@@ -67,7 +67,9 @@ void FactoryAppleImplementation::createDecoder(
           create_decoder_callback(decoder);
         }
       },
-      error_decoder_callback);
+      error_decoder_callback,
+      samplerate,
+      channels);
 }
 
 }  // namespace decoder

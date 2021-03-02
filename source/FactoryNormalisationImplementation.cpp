@@ -41,18 +41,19 @@ void FactoryNormalisationImplementation::createDecoder(
   _wrapped_factory->createDecoder(
       path,
       mime_type,
-      [create_decoder_callback, error_decoder_callback](std::shared_ptr<Decoder> decoder) {
+      [create_decoder_callback, error_decoder_callback, samplerate, channels](
+          std::shared_ptr<Decoder> decoder) {
         if (!decoder) {
           create_decoder_callback(decoder);
           return;
         }
         // No point in normalising an already normalised decoder
-        if (decoder->sampleRate() == DecoderNormalisationImplementation::standardSampleRate() &&
-            decoder->channels() == DecoderNormalisationImplementation::standardChannels()) {
+        if (decoder->sampleRate() == samplerate && decoder->channels() == channels) {
           create_decoder_callback(decoder);
           return;
         }
-        auto normalised_decoder = std::make_shared<DecoderNormalisationImplementation>(decoder);
+        auto normalised_decoder =
+            std::make_shared<DecoderNormalisationImplementation>(decoder, samplerate, channels);
         normalised_decoder->load(error_decoder_callback,
                                  [create_decoder_callback, normalised_decoder](bool success) {
                                    create_decoder_callback(normalised_decoder);
