@@ -20,6 +20,8 @@
  */
 #include <NFDecoder/Factory.h>
 
+#include <cstddef>
+#include <fstream>
 #include <iostream>
 
 #include <NFHTTP/Client.h>
@@ -74,9 +76,8 @@ int main(int argc, char *argv[]) {
   std::cout << "NFDecoder Command Line Interface " << nativeformat::decoder::version() << std::endl;
 
   if (argc < 3 || argc > 5) {
-    printf(
-        "Invalid number of arguments: ./NFDecoderCLI [input] [output] "
-        "[offset] [duration]\n");
+    std::cerr << "Invalid number of arguments: ./NFDecoderCLI [input] [output] [offset] [duration]"
+              << std::endl;
     std::exit(1);
   }
 
@@ -112,15 +113,16 @@ int main(int argc, char *argv[]) {
 
   const std::string media_location = argv[1];
   const std::string media_output = argv[2];
-  const float offset = argc > 3 ? atof(argv[3]) : 0;
-  const float render_duration = argc > 4 ? atof(argv[4]) : -1.0f;
+  const float offset = argc > 3 ? std::stof(argv[3]) : 0;
+  const float render_duration = argc > 4 ? std::stof(argv[4]) : -1.0f;
 
   std::cout << "Input File: " << media_location << std::endl;
   std::cout << "Output File: " << media_output << std::endl;
   if (offset) std::cout << "Offset: " << offset << " seconds" << std::endl;
 
-  FILE *raw_handle;
-  if (!(raw_handle = fopen(media_output.c_str(), "w"))) {
+  const std::fstream raw_handle(media_output, std::ios::out | std::ios::binary);
+
+  if (raw_handle.fail()) {
     std::cout << "Failed to open output file" << std::endl;
     std::exit(1);
   }
@@ -134,13 +136,12 @@ int main(int argc, char *argv[]) {
   factory->createDecoder(
       media_location,
       "",
-      [raw_handle, offset, render_duration](
+      [&raw_handle, offset, render_duration](
           std::shared_ptr<nativeformat::decoder::Decoder> decoder) {
-        printf("Decoder created with %ld frames %d channels %f sample rate\n",
-               decoder->frames(),
-               decoder->channels(),
-               decoder->sampleRate());
-        size_t frame_index = offset * decoder->sampleRate();
+        std::cout << "Decoder created with " << decoder->frames() << " frames "
+                  << decoder->channels() << " channels " << decoder->sampleRate() << " sample rate"
+                  << std::endl;
+        std::size_t frame_index = offset * decoder->sampleRate();
         if (offset) decoder->seek(frame_index);
         long decode_frames = 0;
         if (render_duration < 0.0f) {
@@ -155,15 +156,15 @@ int main(int argc, char *argv[]) {
         std::cout << "Decoding " << decode_frames << " frames" << std::endl;
         decoder->decode(
             decode_frames,
-            [decoder, raw_handle](long frame_index, long frame_count, float *samples_ptr) {
+            [decoder, &raw_handle](long frame_index, long frame_count, float *samples_ptr) {
               std::cout << "Decoded " << frame_count << " frames" << std::endl;
               if (samples_ptr != nullptr) {
                 int channels = decoder->channels();
                 int samples = frame_count * channels;
                 int sample_rate = decoder->sampleRate();
                 // Write out the raw PCM
-                static const size_t bits_per_byte = 8;
-                size_t byte_size = samples * sizeof(float);
+                static const std::size_t bits_per_byte = 8;
+                std::size_t byte_size = samples * sizeof(float);
                 WAVHeader header = {
                     // RIFF Header
                     {
@@ -190,16 +191,18 @@ int main(int argc, char *argv[]) {
                      DATAHeaderValue[2],
                      DATAHeaderValue[3]},
                     static_cast<int>(samples * sizeof(float))};
-                fwrite(&header, sizeof(WAVHeader), 1, raw_handle);
-                fwrite(samples_ptr, samples, sizeof(float), raw_handle);
-                fclose(raw_handle);
+                static_cast<const std::fstream>(raw_handle)
+                    .write(reinterpret_cast<char *>(&header), (1 * sizeof(WAVHeader)));
+                static_cast<const std::fstream>(raw_handle)
+                    .write(reinterpret_cast<char *>(samples_ptr), (samples * sizeof(float)));
+                static_cast<const std::fstream>(raw_handle).close();
               }
-              exit(0);
+              std::exit(0);
             });
       },
       [](const std::string &domain, int error_code) {
-        printf("Error: %s %d\n", domain.c_str(), error_code);
-        exit(error_code);
+        std::cerr << "Error: " << domain << " " << error_code << std::endl;
+        std::exit(error_code);
       });
 
   while (true) {
