@@ -41,11 +41,10 @@ class DecoderNormalisationImplementation
  public:
   typedef enum : int { ErrorCodeCouldNotDecodeHeader } ErrorCode;
 
-  DecoderNormalisationImplementation(const std::shared_ptr<Decoder> &wrapped_decoder);
+  DecoderNormalisationImplementation(const std::shared_ptr<Decoder> &wrapped_decoder,
+                                     const double samplerate,
+                                     const int channels);
   virtual ~DecoderNormalisationImplementation();
-
-  static int standardChannels();
-  static double standardSampleRate();
 
   // Decoder
   virtual double sampleRate();
@@ -69,6 +68,8 @@ class DecoderNormalisationImplementation
   std::atomic<long> _frame_index;
   std::mutex _resampler_mutex;
   std::vector<float> _pcm_buffer;
+  std::atomic<double> _samplerate;
+  std::atomic_int _channels;
 };
 
 }  // namespace decoder
