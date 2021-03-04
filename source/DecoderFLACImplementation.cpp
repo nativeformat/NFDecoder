@@ -116,36 +116,41 @@ long DecoderFLACImplementation::frames() {
   return _frames;
 }
 
-void DecoderFLACImplementation::decode(long frames, const DECODE_CALLBACK &decode_callback) {
+void DecoderFLACImplementation::decode(long frames, const DECODE_CALLBACK &decode_callback, bool synchronous) {
   auto strong_this = shared_from_this();
-  std::thread([decode_callback, strong_this, frames]() {
-    std::lock_guard<std::mutex> flac_decoder_lock(strong_this->_flac_decoder_mutex);
-    auto channels = strong_this->channels();
-    auto frame_index = strong_this->currentFrameIndex();
-    long frame_count = 0;
-    {
-      std::lock_guard<std::mutex> samples_lock(strong_this->_samples_mutex);
-      frame_count = strong_this->_samples.size() / channels;
+    auto run_thread = [decode_callback, strong_this, frames]() {
+        std::lock_guard<std::mutex> flac_decoder_lock(strong_this->_flac_decoder_mutex);
+        auto channels = strong_this->channels();
+        auto frame_index = strong_this->currentFrameIndex();
+        long frame_count = 0;
+        {
+          std::lock_guard<std::mutex> samples_lock(strong_this->_samples_mutex);
+          frame_count = strong_this->_samples.size() / channels;
+        }
+        while (frame_count < frames) {
+          if (!FLAC__stream_decoder_process_single(strong_this->_flac_decoder)) {
+            break;
+          }
+          {
+            std::lock_guard<std::mutex> samples_lock(strong_this->_samples_mutex);
+            frame_count = strong_this->_samples.size() / channels;
+          }
+        }
+        auto read_frames = std::min(frame_count, frames);
+        {
+          std::lock_guard<std::mutex> samples_lock(strong_this->_samples_mutex);
+          decode_callback(frame_index, read_frames, &strong_this->_samples[0]);
+          auto read_samples = read_frames * channels;
+          strong_this->_samples.erase(strong_this->_samples.begin(),
+                                      strong_this->_samples.begin() + read_samples);
+          strong_this->_frame_index = frame_index + read_frames;
+        }
+    };
+    if (synchronous) {
+        run_thread();
+    } else {
+        std::thread(run_thread).detach();
     }
-    while (frame_count < frames) {
-      if (!FLAC__stream_decoder_process_single(strong_this->_flac_decoder)) {
-        break;
-      }
-      {
-        std::lock_guard<std::mutex> samples_lock(strong_this->_samples_mutex);
-        frame_count = strong_this->_samples.size() / channels;
-      }
-    }
-    auto read_frames = std::min(frame_count, frames);
-    {
-      std::lock_guard<std::mutex> samples_lock(strong_this->_samples_mutex);
-      decode_callback(frame_index, read_frames, &strong_this->_samples[0]);
-      auto read_samples = read_frames * channels;
-      strong_this->_samples.erase(strong_this->_samples.begin(),
-                                  strong_this->_samples.begin() + read_samples);
-      strong_this->_frame_index = frame_index + read_frames;
-    }
-  }).detach();
 }
 
 bool DecoderFLACImplementation::eof() {

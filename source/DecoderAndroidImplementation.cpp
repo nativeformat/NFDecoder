@@ -256,7 +256,7 @@ static bool putIntoFloatBuffer(decoderAndroidInternals *internals, int bytesRead
   return true;
 }
 
-void DecoderAndroidImplementation::decode(long frames, const DECODE_CALLBACK &decode_callback) {
+void DecoderAndroidImplementation::decode(long frames, const DECODE_CALLBACK &decode_callback, bool synchronous) {
   // Creating the output buffer.
   float *outputBuffer = (float *)malloc(frames * internals->channels * sizeof(float));
   if (!outputBuffer) {

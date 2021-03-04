@@ -112,68 +112,73 @@ long DecoderWavImplementation::frames() {
   return _frames;
 }
 
-void DecoderWavImplementation::decode(long frames, const DECODE_CALLBACK &decode_callback) {
+void DecoderWavImplementation::decode(long frames, const DECODE_CALLBACK &decode_callback, bool synchronous) {
   long frame_index = _frame_index;
   if (frame_index >= _frames) {
     decode_callback(frame_index, 0, nullptr);
     return;
   }
   std::shared_ptr<DecoderWavImplementation> strong_this = shared_from_this();
-  std::thread([strong_this, decode_callback, frames, frame_index] {
-    if (frames == 0) {
-      decode_callback(frame_index, 0, nullptr);
-      return;
-    }
+    auto run_thread = [strong_this, decode_callback, frames, frame_index] {
+        if (frames == 0) {
+          decode_callback(frame_index, 0, nullptr);
+          return;
+        }
 
-    int channels = strong_this->channels();
-    if (channels == 0) {
-      decode_callback(frame_index, 0, nullptr);
-      return;
-    }
+        int channels = strong_this->channels();
+        if (channels == 0) {
+          decode_callback(frame_index, 0, nullptr);
+          return;
+        }
 
-    size_t sample_size = wavSampleSize(strong_this->_fmt);
-    if (sample_size == 0 || strong_this->_fmt.audio_format == WAVHeaderAudioFormatNone) {
-      decode_callback(frame_index, 0, nullptr);
-      return;
-    }
+        size_t sample_size = wavSampleSize(strong_this->_fmt);
+        if (sample_size == 0 || strong_this->_fmt.audio_format == WAVHeaderAudioFormatNone) {
+          decode_callback(frame_index, 0, nullptr);
+          return;
+        }
 
-    if (strong_this->_fmt.audio_format == WAVHeaderAudioFormatIEEEFloat) {
-      std::vector<float> output(frames * channels);
-      size_t bytes_read =
-          strong_this->_data_provider->read((void *)output.data(), sample_size * channels, frames);
-      size_t frames_read = bytes_read / (sample_size * channels);
-      decode_callback(frame_index, frames_read, output.data());
-      return;
-    }
+        if (strong_this->_fmt.audio_format == WAVHeaderAudioFormatIEEEFloat) {
+          std::vector<float> output(frames * channels);
+          size_t bytes_read =
+              strong_this->_data_provider->read((void *)output.data(), sample_size * channels, frames);
+          size_t frames_read = bytes_read / (sample_size * channels);
+          decode_callback(frame_index, frames_read, output.data());
+          return;
+        }
 
-    // Assume by default that strong_this->_fmt.audio_format ==
-    // WAVHeaderAudioFormatPCM
-    size_t frames_read = 0;
-    switch (sample_size) {
-      case 1: {
-        WavReader<uint8_t> wv(strong_this->_data_provider.get(), frames, channels);
-        frames_read = wv.transferSamples(frames, channels);
-        decode_callback(frame_index, frames_read, wv.out_samples.data());
-        return;
-      }
-      case 2: {
-        WavReader<int16_t> wv(strong_this->_data_provider.get(), frames, channels);
-        frames_read = wv.transferSamples(frames, channels);
-        decode_callback(frame_index, frames_read, wv.out_samples.data());
-        return;
-      }
-      case 4: {
-        WavReader<int32_t> wv(strong_this->_data_provider.get(), frames, channels);
-        frames_read = wv.transferSamples(frames, channels);
-        decode_callback(frame_index, frames_read, wv.out_samples.data());
-        return;
-      }
-      default: {
-        decode_callback(frame_index, 0, nullptr);
-        return;
-      }
+        // Assume by default that strong_this->_fmt.audio_format ==
+        // WAVHeaderAudioFormatPCM
+        size_t frames_read = 0;
+        switch (sample_size) {
+          case 1: {
+            WavReader<uint8_t> wv(strong_this->_data_provider.get(), frames, channels);
+            frames_read = wv.transferSamples(frames, channels);
+            decode_callback(frame_index, frames_read, wv.out_samples.data());
+            return;
+          }
+          case 2: {
+            WavReader<int16_t> wv(strong_this->_data_provider.get(), frames, channels);
+            frames_read = wv.transferSamples(frames, channels);
+            decode_callback(frame_index, frames_read, wv.out_samples.data());
+            return;
+          }
+          case 4: {
+            WavReader<int32_t> wv(strong_this->_data_provider.get(), frames, channels);
+            frames_read = wv.transferSamples(frames, channels);
+            decode_callback(frame_index, frames_read, wv.out_samples.data());
+            return;
+          }
+          default: {
+            decode_callback(frame_index, 0, nullptr);
+            return;
+          }
+        }
+    };
+    if (synchronous) {
+        run_thread();
+    } else {
+        std::thread(run_thread).detach();
     }
-  }).detach();
 }
 
 bool DecoderWavImplementation::eof() {

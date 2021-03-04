@@ -138,47 +138,52 @@ long DecoderVorbisImplementation::frames() {
   return _frames;
 }
 
-void DecoderVorbisImplementation::decode(long frames, const DECODE_CALLBACK &decode_callback) {
+void DecoderVorbisImplementation::decode(long frames, const DECODE_CALLBACK &decode_callback, bool synchronous) {
   std::shared_ptr<DecoderVorbisImplementation> strong_this = shared_from_this();
-  std::thread([strong_this, decode_callback, frames] {
-    long frame_index = strong_this->currentFrameIndex();
+    auto run_thread = [strong_this, decode_callback, frames] {
+        long frame_index = strong_this->currentFrameIndex();
 
-    // Make sure vorbis file is on the same page
-    strong_this->seek(frame_index);
+        // Make sure vorbis file is on the same page
+        strong_this->seek(frame_index);
 
-    int channels = strong_this->channels();
-    float *interleaved_samples = (float *)malloc(frames * channels * sizeof(float));
-    long read_frames = 0;
-    {
-      std::lock_guard<std::mutex> vorbis_lock(strong_this->_vorbis_mutex);
-      while (read_frames < frames) {
-        float **samples = nullptr;
-        long current_read_frames = ov_read_float(&strong_this->_vorbis_file,
-                                                 &samples,
-                                                 frames - read_frames,
-                                                 &strong_this->_current_section);
-        if (current_read_frames <= 0) {
-          if (current_read_frames == OV_HOLE) {
-            continue;
+        int channels = strong_this->channels();
+        float *interleaved_samples = (float *)malloc(frames * channels * sizeof(float));
+        long read_frames = 0;
+        {
+          std::lock_guard<std::mutex> vorbis_lock(strong_this->_vorbis_mutex);
+          while (read_frames < frames) {
+            float **samples = nullptr;
+            long current_read_frames = ov_read_float(&strong_this->_vorbis_file,
+                                                     &samples,
+                                                     frames - read_frames,
+                                                     &strong_this->_current_section);
+            if (current_read_frames <= 0) {
+              if (current_read_frames == OV_HOLE) {
+                continue;
+              }
+              if (current_read_frames < 0) {
+                printf("Vorbis Error: %ld\n", current_read_frames);
+              }
+              break;
+            }
+            for (long i = 0; i < current_read_frames; ++i) {
+              for (int j = 0; j < channels; ++j) {
+                interleaved_samples[(i * channels) + j + (read_frames * channels)] = samples[j][i];
+              }
+            }
+            read_frames += current_read_frames;
           }
-          if (current_read_frames < 0) {
-            printf("Vorbis Error: %ld\n", current_read_frames);
-          }
-          break;
         }
-        for (long i = 0; i < current_read_frames; ++i) {
-          for (int j = 0; j < channels; ++j) {
-            interleaved_samples[(i * channels) + j + (read_frames * channels)] = samples[j][i];
-          }
-        }
-        read_frames += current_read_frames;
-      }
+
+        strong_this->_frame_index = frame_index + read_frames;
+        decode_callback(frame_index, read_frames, interleaved_samples);
+        free(interleaved_samples);
+    };
+    if (synchronous) {
+        run_thread();
+    } else {
+        std::thread(run_thread).detach();
     }
-
-    strong_this->_frame_index = frame_index + read_frames;
-    decode_callback(frame_index, read_frames, interleaved_samples);
-    free(interleaved_samples);
-  }).detach();
 }
 
 bool DecoderVorbisImplementation::eof() {

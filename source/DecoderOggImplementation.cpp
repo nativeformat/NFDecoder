@@ -80,8 +80,8 @@ long DecoderOggImplementation::frames() {
   return _decoder->frames();
 }
 
-void DecoderOggImplementation::decode(long frames, const DECODE_CALLBACK &decode_callback) {
-  _decoder->decode(frames, decode_callback);
+void DecoderOggImplementation::decode(long frames, const DECODE_CALLBACK &decode_callback, bool synchronous) {
+  _decoder->decode(frames, decode_callback, synchronous);
 }
 
 bool DecoderOggImplementation::eof() {

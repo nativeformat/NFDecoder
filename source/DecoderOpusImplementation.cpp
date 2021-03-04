@@ -134,46 +134,51 @@ long DecoderOpusImplementation::frames() {
   return _frames;
 }
 
-void DecoderOpusImplementation::decode(long frames, const DECODE_CALLBACK &decode_callback) {
+void DecoderOpusImplementation::decode(long frames, const DECODE_CALLBACK &decode_callback, bool synchronous) {
   std::shared_ptr<DecoderOpusImplementation> strong_this = shared_from_this();
-  std::thread([strong_this, decode_callback, frames] {
-    long frame_index = strong_this->currentFrameIndex();
+    auto run_thread = [strong_this, decode_callback, frames] {
+        long frame_index = strong_this->currentFrameIndex();
 
-    // Make sure opus file is on the same page
-    strong_this->seek(frame_index);
+        // Make sure opus file is on the same page
+        strong_this->seek(frame_index);
 
-    float *samples = (float *)malloc(frames * sizeof(float) * strong_this->_channels);
-    long read_frames = 0, read_samples = 0;
-    {
-      std::lock_guard<std::mutex> opus_lock(strong_this->_opus_mutex);
-      while (read_frames < frames) {
-        long current_read_frames = op_read_float(strong_this->_opus_file,
-                                                 samples + read_samples,
-                                                 frames - read_frames,
-                                                 &strong_this->_current_section);
-        if (current_read_frames <= 0) {
-          if (current_read_frames == OP_HOLE) {
-            continue;
+        float *samples = (float *)malloc(frames * sizeof(float) * strong_this->_channels);
+        long read_frames = 0, read_samples = 0;
+        {
+          std::lock_guard<std::mutex> opus_lock(strong_this->_opus_mutex);
+          while (read_frames < frames) {
+            long current_read_frames = op_read_float(strong_this->_opus_file,
+                                                     samples + read_samples,
+                                                     frames - read_frames,
+                                                     &strong_this->_current_section);
+            if (current_read_frames <= 0) {
+              if (current_read_frames == OP_HOLE) {
+                continue;
+              }
+              if (current_read_frames < 0) {
+                printf("Decode error: %s\n", opus_error(current_read_frames).c_str());
+              }
+              break;
+            }
+            // update channel count in case we moved to a new section
+            int channels = op_channel_count(strong_this->_opus_file, strong_this->_current_section);
+            if (channels > strong_this->_channels) {
+              samples = (float *)realloc(samples, frames * sizeof(float) * channels);
+            }
+            strong_this->_channels = channels;
+            read_frames += current_read_frames;
+            read_samples += current_read_frames * channels;
           }
-          if (current_read_frames < 0) {
-            printf("Decode error: %s\n", opus_error(current_read_frames).c_str());
-          }
-          break;
+          strong_this->_frame_index = frame_index + read_frames;
         }
-        // update channel count in case we moved to a new section
-        int channels = op_channel_count(strong_this->_opus_file, strong_this->_current_section);
-        if (channels > strong_this->_channels) {
-          samples = (float *)realloc(samples, frames * sizeof(float) * channels);
-        }
-        strong_this->_channels = channels;
-        read_frames += current_read_frames;
-        read_samples += current_read_frames * channels;
-      }
-      strong_this->_frame_index = frame_index + read_frames;
+        decode_callback(frame_index, read_frames, samples);
+        free(samples);
+    };
+    if (synchronous) {
+        run_thread();
+    } else {
+        std::thread(run_thread).detach();
     }
-    decode_callback(frame_index, read_frames, samples);
-    free(samples);
-  }).detach();
 }
 
 bool DecoderOpusImplementation::eof() {

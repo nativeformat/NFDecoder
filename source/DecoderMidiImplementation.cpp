@@ -138,79 +138,84 @@ long DecoderMidiImplementation::frames() {
   return _frames;
 }
 
-void DecoderMidiImplementation::decode(long frames, const DECODE_CALLBACK &decode_callback) {
+void DecoderMidiImplementation::decode(long frames, const DECODE_CALLBACK &decode_callback, bool synchronous) {
   long frame_index = _frame_index;
   if (_midi_stream == nullptr) {
     decode_callback(frame_index, 0, nullptr);
   }
 
   std::shared_ptr<DecoderMidiImplementation> strong_this = shared_from_this();
-  std::thread([strong_this, decode_callback, frames, frame_index] {
-    if (frames == 0) {
-      decode_callback(frame_index, 0, nullptr);
-      return;
-    }
-    int channels = strong_this->channels();
-    if (channels == 0) {
-      decode_callback(frame_index, 0, nullptr);
-      return;
-    }
-
-    double samplerate = strong_this->sampleRate();
-    const tml_message *midi_pkt = strong_this->stream();
-    auto *sounds = const_cast<tsf *>(strong_this->soundbank());
-    const double time_incr = 1000.0 / samplerate;
-    double time_ms = frame_index * time_incr;
-    int frames_left = frames;
-
-    std::vector<float> output(frames * channels);
-
-    int frame_block = 64;  // Recommended value from tsf.h. Lower means more
-                           // accurate but more CPU required.
-    for (size_t output_index = 0; frames_left;
-         frames_left -= frame_block, output_index += frame_block * channels) {
-      // We progress the MIDI playback and then process
-      // TSF_RENDER_EFFECTSAMPLEBLOCK samples at once
-      if (frame_block > frames_left) frame_block = frames_left;
-
-      // Loop through all MIDI messages which need to be played up until the
-      // current playback time
-      // 1000 for milliseconds
-      for (time_ms += frame_block * time_incr; midi_pkt && time_ms >= midi_pkt->time;
-           midi_pkt = midi_pkt->next) {
-        switch (midi_pkt->type) {
-          case TML_NOTE_OFF:  // stop a note
-            tsf_channel_note_off(sounds, midi_pkt->channel, midi_pkt->key);
-            break;
-          case TML_NOTE_ON:  // play a note
-            tsf_channel_note_on(
-                sounds, midi_pkt->channel, midi_pkt->key, midi_pkt->velocity / 127.0f);
-            break;
-          case TML_KEY_PRESSURE:
-            // TODO: Implement
-            break;
-          case TML_CONTROL_CHANGE:  // MIDI controller messages
-            tsf_channel_midi_control(
-                sounds, midi_pkt->channel, midi_pkt->control, midi_pkt->control_value);
-            break;
-          case TML_PROGRAM_CHANGE:  // channel program (preset) change (special
-                                    // handling for 10th MIDI channel with drums)
-            tsf_channel_set_presetnumber(
-                sounds, midi_pkt->channel, midi_pkt->program, (midi_pkt->channel == 9));
-            break;
-          case TML_CHANNEL_PRESSURE:
-          // TODO: Implement
-          case TML_PITCH_BEND:  // pitch wheel modification
-            tsf_channel_set_pitchwheel(sounds, midi_pkt->channel, midi_pkt->pitch_bend);
-            break;
+    auto run_thread = [strong_this, decode_callback, frames, frame_index] {
+        if (frames == 0) {
+          decode_callback(frame_index, 0, nullptr);
+          return;
         }
-      }
+        int channels = strong_this->channels();
+        if (channels == 0) {
+          decode_callback(frame_index, 0, nullptr);
+          return;
+        }
 
-      // Render the block of audio samples in float format
-      tsf_render_float(sounds, output.data() + output_index, frame_block, 0);
+        double samplerate = strong_this->sampleRate();
+        const tml_message *midi_pkt = strong_this->stream();
+        auto *sounds = const_cast<tsf *>(strong_this->soundbank());
+        const double time_incr = 1000.0 / samplerate;
+        double time_ms = frame_index * time_incr;
+        int frames_left = frames;
+
+        std::vector<float> output(frames * channels);
+
+        int frame_block = 64;  // Recommended value from tsf.h. Lower means more
+                               // accurate but more CPU required.
+        for (size_t output_index = 0; frames_left;
+             frames_left -= frame_block, output_index += frame_block * channels) {
+          // We progress the MIDI playback and then process
+          // TSF_RENDER_EFFECTSAMPLEBLOCK samples at once
+          if (frame_block > frames_left) frame_block = frames_left;
+
+          // Loop through all MIDI messages which need to be played up until the
+          // current playback time
+          // 1000 for milliseconds
+          for (time_ms += frame_block * time_incr; midi_pkt && time_ms >= midi_pkt->time;
+               midi_pkt = midi_pkt->next) {
+            switch (midi_pkt->type) {
+              case TML_NOTE_OFF:  // stop a note
+                tsf_channel_note_off(sounds, midi_pkt->channel, midi_pkt->key);
+                break;
+              case TML_NOTE_ON:  // play a note
+                tsf_channel_note_on(
+                    sounds, midi_pkt->channel, midi_pkt->key, midi_pkt->velocity / 127.0f);
+                break;
+              case TML_KEY_PRESSURE:
+                // TODO: Implement
+                break;
+              case TML_CONTROL_CHANGE:  // MIDI controller messages
+                tsf_channel_midi_control(
+                    sounds, midi_pkt->channel, midi_pkt->control, midi_pkt->control_value);
+                break;
+              case TML_PROGRAM_CHANGE:  // channel program (preset) change (special
+                                        // handling for 10th MIDI channel with drums)
+                tsf_channel_set_presetnumber(
+                    sounds, midi_pkt->channel, midi_pkt->program, (midi_pkt->channel == 9));
+                break;
+              case TML_CHANNEL_PRESSURE:
+              // TODO: Implement
+              case TML_PITCH_BEND:  // pitch wheel modification
+                tsf_channel_set_pitchwheel(sounds, midi_pkt->channel, midi_pkt->pitch_bend);
+                break;
+            }
+          }
+
+          // Render the block of audio samples in float format
+          tsf_render_float(sounds, output.data() + output_index, frame_block, 0);
+        }
+        decode_callback(frame_index, frames - frames_left, output.data());
+    };
+    if (synchronous) {
+        run_thread();
+    } else {
+        std::thread(run_thread).detach();
     }
-    decode_callback(frame_index, frames - frames_left, output.data());
-  }).detach();
 }
 
 bool DecoderMidiImplementation::eof() {
