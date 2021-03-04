@@ -80,7 +80,9 @@ long DecoderOggImplementation::frames() {
   return _decoder->frames();
 }
 
-void DecoderOggImplementation::decode(long frames, const DECODE_CALLBACK &decode_callback, bool synchronous) {
+void DecoderOggImplementation::decode(long frames,
+                                      const DECODE_CALLBACK &decode_callback,
+                                      bool synchronous) {
   _decoder->decode(frames, decode_callback, synchronous);
 }
 

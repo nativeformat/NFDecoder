@@ -262,7 +262,8 @@ void DecoderNormalisationImplementation::decode(long frames,
 
         decode_callback(current_frame_index, sent_frames, buffered_output);
         free(buffered_output);
-      }, synchronous);
+      },
+      synchronous);
 }
 
 bool DecoderNormalisationImplementation::eof() {

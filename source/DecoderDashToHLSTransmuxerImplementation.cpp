@@ -187,100 +187,100 @@ void DecoderDashToHLSTransmuxerImplementation::decode(long frames,
                                                       const DECODE_CALLBACK &decode_callback,
                                                       bool synchronous) {
   auto strong_this = shared_from_this();
-    auto run_thread = [strong_this, decode_callback, frames] {
-        std::lock_guard<std::mutex> lock(strong_this->_decoding_mutex);
-        long frame_index = strong_this->currentFrameIndex();
-        long possible_frames = std::min(frames, strong_this->frames() - frame_index);
-        auto current_frame_index =
-            static_cast<long>(frame_index + (strong_this->_samples.size() / strong_this->channels()));
-        while (possible_frames > (strong_this->_samples.size() / strong_this->channels())) {
-          // Find segment to load
-          uint32_t i = 0;
-          auto time_frame_index = 0l;
-          auto start_time_frame_index = 0l;
-          for (; i < strong_this->_index->index_count; ++i) {
-            auto segment = strong_this->_index->segments[i];
-            auto time =
-                static_cast<double>(segment.duration) * (1.0 / static_cast<double>(segment.timescale));
-            time_frame_index += time * strong_this->sampleRate();
-            if (i == 0) {
-              time_frame_index -= strong_this->_start_junk_frames;
-            }
-            if (time_frame_index > current_frame_index) {
-              break;
-            }
-            start_time_frame_index = time_frame_index;
-          }
-
-          // Sometimes we get segments that have subseconds of content (making the
-          // floor check fail)
-          if (i == strong_this->_index->index_count) {
-            i--;
-          }
-
-          // Load next segment and wait
-          auto current_frames = strong_this->_samples.size() / strong_this->channels();
-          std::condition_variable conditional_variable;
-          std::mutex mutex;
-          bool error = false, loaded = false;
-          strong_this->loadSegment(
-              i,
-              [&conditional_variable, &mutex, &error, &loaded](const std::string &domain,
-                                                               int error_code) {
-                std::lock_guard<std::mutex> lock(mutex);
-                loaded = true;
-                error = true;
-                conditional_variable.notify_one();
-              },
-              [&conditional_variable, &mutex, &loaded]() {
-                std::lock_guard<std::mutex> lock(mutex);
-                loaded = true;
-                conditional_variable.notify_one();
-              });
-          std::unique_lock<std::mutex> lock(mutex);
-          while (!loaded) {
-            conditional_variable.wait(lock);
-          }
-
-          // Remove start junk samples
-          if (current_frame_index < strong_this->_start_junk_frames) {
-            auto frames_to_remove =
-                std::min(strong_this->_start_junk_frames - current_frame_index,
-                         static_cast<long>(strong_this->_samples.size() / strong_this->channels()));
-            auto samples_to_remove = frames_to_remove * strong_this->channels();
-            strong_this->_samples.erase(strong_this->_samples.begin(),
-                                        strong_this->_samples.begin() + samples_to_remove);
-          }
-
-          // Clip to the nearest segment
-          if (current_frames == 0 && current_frame_index > start_time_frame_index) {
-            auto frames_to_skip = static_cast<long>(current_frame_index - start_time_frame_index);
-            auto samples_to_skip = frames_to_skip * strong_this->channels();
-            strong_this->_samples.erase(strong_this->_samples.begin(),
-                                        strong_this->_samples.begin() + samples_to_skip);
-          }
-
-          if (error) {
-            break;
-          }
-          ++i;
-          current_frame_index = frame_index + (strong_this->_samples.size() / strong_this->channels());
+  auto run_thread = [strong_this, decode_callback, frames] {
+    std::lock_guard<std::mutex> lock(strong_this->_decoding_mutex);
+    long frame_index = strong_this->currentFrameIndex();
+    long possible_frames = std::min(frames, strong_this->frames() - frame_index);
+    auto current_frame_index =
+        static_cast<long>(frame_index + (strong_this->_samples.size() / strong_this->channels()));
+    while (possible_frames > (strong_this->_samples.size() / strong_this->channels())) {
+      // Find segment to load
+      uint32_t i = 0;
+      auto time_frame_index = 0l;
+      auto start_time_frame_index = 0l;
+      for (; i < strong_this->_index->index_count; ++i) {
+        auto segment = strong_this->_index->segments[i];
+        auto time =
+            static_cast<double>(segment.duration) * (1.0 / static_cast<double>(segment.timescale));
+        time_frame_index += time * strong_this->sampleRate();
+        if (i == 0) {
+          time_frame_index -= strong_this->_start_junk_frames;
         }
+        if (time_frame_index > current_frame_index) {
+          break;
+        }
+        start_time_frame_index = time_frame_index;
+      }
 
-        // Fill Sample buffer
-        long output_frames = std::min(
-            possible_frames, static_cast<long>(strong_this->_samples.size() / strong_this->channels()));
-        strong_this->_frame_index = frame_index + output_frames;
-        decode_callback(frame_index, output_frames, &strong_this->_samples[0]);
-        strong_this->_samples.erase(
-            strong_this->_samples.begin(),
-            strong_this->_samples.begin() + (output_frames * strong_this->channels()));
-    };
-    if (synchronous) {
-        run_thread();
-    } else {
-        std::thread(run_thread).detach();
+      // Sometimes we get segments that have subseconds of content (making the
+      // floor check fail)
+      if (i == strong_this->_index->index_count) {
+        i--;
+      }
+
+      // Load next segment and wait
+      auto current_frames = strong_this->_samples.size() / strong_this->channels();
+      std::condition_variable conditional_variable;
+      std::mutex mutex;
+      bool error = false, loaded = false;
+      strong_this->loadSegment(
+          i,
+          [&conditional_variable, &mutex, &error, &loaded](const std::string &domain,
+                                                           int error_code) {
+            std::lock_guard<std::mutex> lock(mutex);
+            loaded = true;
+            error = true;
+            conditional_variable.notify_one();
+          },
+          [&conditional_variable, &mutex, &loaded]() {
+            std::lock_guard<std::mutex> lock(mutex);
+            loaded = true;
+            conditional_variable.notify_one();
+          });
+      std::unique_lock<std::mutex> lock(mutex);
+      while (!loaded) {
+        conditional_variable.wait(lock);
+      }
+
+      // Remove start junk samples
+      if (current_frame_index < strong_this->_start_junk_frames) {
+        auto frames_to_remove =
+            std::min(strong_this->_start_junk_frames - current_frame_index,
+                     static_cast<long>(strong_this->_samples.size() / strong_this->channels()));
+        auto samples_to_remove = frames_to_remove * strong_this->channels();
+        strong_this->_samples.erase(strong_this->_samples.begin(),
+                                    strong_this->_samples.begin() + samples_to_remove);
+      }
+
+      // Clip to the nearest segment
+      if (current_frames == 0 && current_frame_index > start_time_frame_index) {
+        auto frames_to_skip = static_cast<long>(current_frame_index - start_time_frame_index);
+        auto samples_to_skip = frames_to_skip * strong_this->channels();
+        strong_this->_samples.erase(strong_this->_samples.begin(),
+                                    strong_this->_samples.begin() + samples_to_skip);
+      }
+
+      if (error) {
+        break;
+      }
+      ++i;
+      current_frame_index = frame_index + (strong_this->_samples.size() / strong_this->channels());
     }
+
+    // Fill Sample buffer
+    long output_frames = std::min(
+        possible_frames, static_cast<long>(strong_this->_samples.size() / strong_this->channels()));
+    strong_this->_frame_index = frame_index + output_frames;
+    decode_callback(frame_index, output_frames, &strong_this->_samples[0]);
+    strong_this->_samples.erase(
+        strong_this->_samples.begin(),
+        strong_this->_samples.begin() + (output_frames * strong_this->channels()));
+  };
+  if (synchronous) {
+    run_thread();
+  } else {
+    std::thread(run_thread).detach();
+  }
 }
 
 bool DecoderDashToHLSTransmuxerImplementation::eof() {

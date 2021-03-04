@@ -262,86 +262,85 @@ void DecoderAudioConverterImplementation::decode(long frames,
                                                  bool synchronous) {
   auto strong_this = shared_from_this();
   auto run_thread = [strong_this, decode_callback, frames] {
-      long frame_index = strong_this->currentFrameIndex();
-      int channels = strong_this->channels();
-      float *samples = (float *)malloc(frames * channels * sizeof(float));
-      long read_frames = 0;
-      {
-        std::lock_guard<std::mutex> lock(strong_this->_audiotoolbox_mutex);
-        auto fill_data = [&]() -> OSStatus {
-          size_t data_size = 1024 * 500;  // 500 kB
-          unsigned char *data = (unsigned char *)malloc(data_size);
-          size_t read_data =
-              strong_this->_data_provider->read(data, sizeof(unsigned char), data_size);
-          OSStatus status = noErr;
-          if (read_data == 0) {
-            status = -1;
-          } else {
-            status = AudioFileStreamParseBytes(
-                strong_this->_audio_file_stream, read_data, data, (AudioFileStreamParseFlags)0);
-          }
-          free(data);
-          return status;
-        };
-        auto dump_data = [&]() {
-          long frames_to_read = frames - read_frames;
-          auto current_frame_index = frame_index + read_frames;
-          if (current_frame_index < strong_this->_start_junk_frames) {
-            auto delete_frames = std::min(
-                strong_this->_start_junk_frames - current_frame_index,
-                static_cast<long>(strong_this->_pcm_buffer.size() / strong_this->channels()));
-            strong_this->_pcm_buffer.erase(
-                strong_this->_pcm_buffer.begin(),
-                strong_this->_pcm_buffer.begin() + (delete_frames * strong_this->channels()));
-            frames_to_read -= delete_frames;
-          }
-          long pcm_samples = strong_this->_pcm_buffer.size();
-          if (frames_to_read > 0 && pcm_samples > 0) {
-            long samples_to_read = std::min((long)pcm_samples, frames_to_read * channels);
-            memcpy(&samples[read_frames * channels],
-                   &strong_this->_pcm_buffer[0],
-                   samples_to_read * sizeof(float));
-            strong_this->_pcm_buffer.erase(strong_this->_pcm_buffer.begin(),
-                                           strong_this->_pcm_buffer.begin() + samples_to_read);
-            read_frames += samples_to_read / channels;
-          }
-        };
-        while (read_frames < frames) {
+    long frame_index = strong_this->currentFrameIndex();
+    int channels = strong_this->channels();
+    float *samples = (float *)malloc(frames * channels * sizeof(float));
+    long read_frames = 0;
+    {
+      std::lock_guard<std::mutex> lock(strong_this->_audiotoolbox_mutex);
+      auto fill_data = [&]() -> OSStatus {
+        size_t data_size = 1024 * 500;  // 500 kB
+        unsigned char *data = (unsigned char *)malloc(data_size);
+        size_t read_data =
+            strong_this->_data_provider->read(data, sizeof(unsigned char), data_size);
+        OSStatus status = noErr;
+        if (read_data == 0) {
+          status = -1;
+        } else {
+          status = AudioFileStreamParseBytes(
+              strong_this->_audio_file_stream, read_data, data, (AudioFileStreamParseFlags)0);
+        }
+        free(data);
+        return status;
+      };
+      auto dump_data = [&]() {
+        long frames_to_read = frames - read_frames;
+        auto current_frame_index = frame_index + read_frames;
+        if (current_frame_index < strong_this->_start_junk_frames) {
+          auto delete_frames = std::min(
+              strong_this->_start_junk_frames - current_frame_index,
+              static_cast<long>(strong_this->_pcm_buffer.size() / strong_this->channels()));
+          strong_this->_pcm_buffer.erase(
+              strong_this->_pcm_buffer.begin(),
+              strong_this->_pcm_buffer.begin() + (delete_frames * strong_this->channels()));
+          frames_to_read -= delete_frames;
+        }
+        long pcm_samples = strong_this->_pcm_buffer.size();
+        if (frames_to_read > 0 && pcm_samples > 0) {
+          long samples_to_read = std::min((long)pcm_samples, frames_to_read * channels);
+          memcpy(&samples[read_frames * channels],
+                 &strong_this->_pcm_buffer[0],
+                 samples_to_read * sizeof(float));
+          strong_this->_pcm_buffer.erase(strong_this->_pcm_buffer.begin(),
+                                         strong_this->_pcm_buffer.begin() + samples_to_read);
+          read_frames += samples_to_read / channels;
+        }
+      };
+      while (read_frames < frames) {
+        if (strong_this->_frame_offset > 0) {
+          long maximum_erase =
+              std::min(static_cast<long>(strong_this->_pcm_buffer.size() / channels),
+                       strong_this->_frame_offset);
+          strong_this->_pcm_buffer.erase(
+              strong_this->_pcm_buffer.begin(),
+              strong_this->_pcm_buffer.begin() + (maximum_erase * channels));
+          strong_this->_frame_offset -= maximum_erase;
           if (strong_this->_frame_offset > 0) {
-            long maximum_erase =
-                std::min(static_cast<long>(strong_this->_pcm_buffer.size() / channels),
-                         strong_this->_frame_offset);
-            strong_this->_pcm_buffer.erase(
-                strong_this->_pcm_buffer.begin(),
-                strong_this->_pcm_buffer.begin() + (maximum_erase * channels));
-            strong_this->_frame_offset -= maximum_erase;
-            if (strong_this->_frame_offset > 0) {
-              if (fill_data() != noErr) {
-                break;
-              }
+            if (fill_data() != noErr) {
+              break;
+            }
+          }
+        } else {
+          if (strong_this->_pcm_buffer.empty()) {
+            if (fill_data() != noErr) {
+              break;
             }
           } else {
-            if (strong_this->_pcm_buffer.empty()) {
-              if (fill_data() != noErr) {
-                break;
-              }
-            } else {
-              dump_data();
-            }
+            dump_data();
           }
         }
-        dump_data();
       }
-      decode_callback(frame_index, read_frames, samples);
-      free(samples);
-      strong_this->_frame_index = frame_index + read_frames;
-  };
-    if (synchronous) {
-        run_thread();
-    } else {
-        std::thread(run_thread).detach();
+      dump_data();
     }
-  
+    decode_callback(frame_index, read_frames, samples);
+    free(samples);
+    strong_this->_frame_index = frame_index + read_frames;
+  };
+  if (synchronous) {
+    run_thread();
+  } else {
+    std::thread(run_thread).detach();
+  }
 }
 
 bool DecoderAudioConverterImplementation::eof() {
