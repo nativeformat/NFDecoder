@@ -120,7 +120,7 @@ int main(int argc, char *argv[]) {
   std::cout << "Output File: " << media_output << std::endl;
   if (offset) std::cout << "Offset: " << offset << " seconds" << std::endl;
 
-  const std::fstream raw_handle(media_output, std::ios::out | std::ios::binary);
+  std::fstream raw_handle(media_output, std::ios::out | std::ios::binary);
 
   if (raw_handle.fail()) {
     std::cout << "Failed to open output file" << std::endl;
@@ -191,11 +191,9 @@ int main(int argc, char *argv[]) {
                      DATAHeaderValue[2],
                      DATAHeaderValue[3]},
                     static_cast<int>(samples * sizeof(float))};
-                static_cast<const std::fstream>(raw_handle)
-                    .write(reinterpret_cast<char *>(&header), (1 * sizeof(WAVHeader)));
-                static_cast<const std::fstream>(raw_handle)
-                    .write(reinterpret_cast<char *>(samples_ptr), (samples * sizeof(float)));
-                static_cast<const std::fstream>(raw_handle).close();
+                raw_handle.write(reinterpret_cast<char *>(&header), sizeof(WAVHeader));
+                raw_handle.write(reinterpret_cast<char *>(samples_ptr), samples * sizeof(float));
+                raw_handle.close();
               }
               std::exit(0);
             });
