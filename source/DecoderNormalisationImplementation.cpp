@@ -109,7 +109,8 @@ long DecoderNormalisationImplementation::frames() {
 }
 
 void DecoderNormalisationImplementation::decode(long frames,
-                                                const DECODE_CALLBACK &decode_callback) {
+                                                const DECODE_CALLBACK &decode_callback,
+                                                bool synchronous) {
   {
     auto samples = frames * channels();
     if (_pcm_buffer.size() >= samples) {
@@ -261,7 +262,8 @@ void DecoderNormalisationImplementation::decode(long frames,
 
         decode_callback(current_frame_index, sent_frames, buffered_output);
         free(buffered_output);
-      });
+      },
+      synchronous);
 }
 
 bool DecoderNormalisationImplementation::eof() {

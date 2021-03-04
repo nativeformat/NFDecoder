@@ -138,14 +138,16 @@ long DecoderMidiImplementation::frames() {
   return _frames;
 }
 
-void DecoderMidiImplementation::decode(long frames, const DECODE_CALLBACK &decode_callback) {
+void DecoderMidiImplementation::decode(long frames,
+                                       const DECODE_CALLBACK &decode_callback,
+                                       bool synchronous) {
   long frame_index = _frame_index;
   if (_midi_stream == nullptr) {
     decode_callback(frame_index, 0, nullptr);
   }
 
   std::shared_ptr<DecoderMidiImplementation> strong_this = shared_from_this();
-  std::thread([strong_this, decode_callback, frames, frame_index] {
+  auto run_thread = [strong_this, decode_callback, frames, frame_index] {
     if (frames == 0) {
       decode_callback(frame_index, 0, nullptr);
       return;
@@ -210,7 +212,12 @@ void DecoderMidiImplementation::decode(long frames, const DECODE_CALLBACK &decod
       tsf_render_float(sounds, output.data() + output_index, frame_block, 0);
     }
     decode_callback(frame_index, frames - frames_left, output.data());
-  }).detach();
+  };
+  if (synchronous) {
+    run_thread();
+  } else {
+    std::thread(run_thread).detach();
+  }
 }
 
 bool DecoderMidiImplementation::eof() {

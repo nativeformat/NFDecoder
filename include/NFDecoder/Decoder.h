@@ -42,7 +42,9 @@ class Decoder {
   virtual long currentFrameIndex() = 0;
   virtual void seek(long frame_index) = 0;
   virtual long frames() = 0;
-  virtual void decode(long frames, const DECODE_CALLBACK &decode_callback) = 0;
+  virtual void decode(long frames,
+                      const DECODE_CALLBACK &decode_callback,
+                      bool synchronous = false) = 0;
   virtual bool eof() = 0;
   virtual const std::string &path() = 0;
   virtual const std::string &name() = 0;

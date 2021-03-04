@@ -134,9 +134,11 @@ long DecoderOpusImplementation::frames() {
   return _frames;
 }
 
-void DecoderOpusImplementation::decode(long frames, const DECODE_CALLBACK &decode_callback) {
+void DecoderOpusImplementation::decode(long frames,
+                                       const DECODE_CALLBACK &decode_callback,
+                                       bool synchronous) {
   std::shared_ptr<DecoderOpusImplementation> strong_this = shared_from_this();
-  std::thread([strong_this, decode_callback, frames] {
+  auto run_thread = [strong_this, decode_callback, frames] {
     long frame_index = strong_this->currentFrameIndex();
 
     // Make sure opus file is on the same page
@@ -173,7 +175,12 @@ void DecoderOpusImplementation::decode(long frames, const DECODE_CALLBACK &decod
     }
     decode_callback(frame_index, read_frames, samples);
     free(samples);
-  }).detach();
+  };
+  if (synchronous) {
+    run_thread();
+  } else {
+    std::thread(run_thread).detach();
+  }
 }
 
 bool DecoderOpusImplementation::eof() {

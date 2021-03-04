@@ -79,10 +79,6 @@ set(LINK_LIBRARIES
   libresample
   NFHTTP
   ${OPENSSL_LIBRARIES}
-  DashToHlsLibrary
-  DashToHlsDash
-  DashToHlsTs
-  DashToHlsPs
   flac
   TinySoundFont
   )
@@ -95,6 +91,16 @@ set(INCLUDE_DIRS
   ../libraries/NFHTTP/include
   ../libraries/universal-dash-transmuxer/include
   ${CMAKE_BINARY_DIR}/output)
+
+if(INCLUDE_UDT)
+  set(DASH_LIBRARIES
+    DashToHlsLibrary
+    DashToHlsDash
+    DashToHlsTs
+    DashToHlsPs
+  )
+  list(APPEND LINK_LIBRARIES ${DASH_LIBRARIES})
+endif()
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   find_library(AUDIO_TOOLBOX AudioToolbox)

@@ -138,9 +138,11 @@ long DecoderVorbisImplementation::frames() {
   return _frames;
 }
 
-void DecoderVorbisImplementation::decode(long frames, const DECODE_CALLBACK &decode_callback) {
+void DecoderVorbisImplementation::decode(long frames,
+                                         const DECODE_CALLBACK &decode_callback,
+                                         bool synchronous) {
   std::shared_ptr<DecoderVorbisImplementation> strong_this = shared_from_this();
-  std::thread([strong_this, decode_callback, frames] {
+  auto run_thread = [strong_this, decode_callback, frames] {
     long frame_index = strong_this->currentFrameIndex();
 
     // Make sure vorbis file is on the same page
@@ -178,7 +180,12 @@ void DecoderVorbisImplementation::decode(long frames, const DECODE_CALLBACK &dec
     strong_this->_frame_index = frame_index + read_frames;
     decode_callback(frame_index, read_frames, interleaved_samples);
     free(interleaved_samples);
-  }).detach();
+  };
+  if (synchronous) {
+    run_thread();
+  } else {
+    std::thread(run_thread).detach();
+  }
 }
 
 bool DecoderVorbisImplementation::eof() {

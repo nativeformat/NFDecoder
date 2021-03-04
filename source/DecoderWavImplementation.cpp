@@ -112,14 +112,16 @@ long DecoderWavImplementation::frames() {
   return _frames;
 }
 
-void DecoderWavImplementation::decode(long frames, const DECODE_CALLBACK &decode_callback) {
+void DecoderWavImplementation::decode(long frames,
+                                      const DECODE_CALLBACK &decode_callback,
+                                      bool synchronous) {
   long frame_index = _frame_index;
   if (frame_index >= _frames) {
     decode_callback(frame_index, 0, nullptr);
     return;
   }
   std::shared_ptr<DecoderWavImplementation> strong_this = shared_from_this();
-  std::thread([strong_this, decode_callback, frames, frame_index] {
+  auto run_thread = [strong_this, decode_callback, frames, frame_index] {
     if (frames == 0) {
       decode_callback(frame_index, 0, nullptr);
       return;
@@ -173,7 +175,12 @@ void DecoderWavImplementation::decode(long frames, const DECODE_CALLBACK &decode
         return;
       }
     }
-  }).detach();
+  };
+  if (synchronous) {
+    run_thread();
+  } else {
+    std::thread(run_thread).detach();
+  }
 }
 
 bool DecoderWavImplementation::eof() {

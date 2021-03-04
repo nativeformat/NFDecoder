@@ -51,7 +51,7 @@ class DecoderFLACImplementation : public Decoder,
   virtual long currentFrameIndex();
   virtual void seek(long frame_index);
   virtual long frames();
-  virtual void decode(long frames, const DECODE_CALLBACK &decode_callback);
+  virtual void decode(long frames, const DECODE_CALLBACK &decode_callback, bool synchronous);
   virtual bool eof();
   virtual const std::string &path();
   virtual const std::string &name();

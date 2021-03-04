@@ -264,11 +264,17 @@ long DecoderAVCodecImplementation::frames() {
   return _frames;
 }
 
-void DecoderAVCodecImplementation::decode(long frames, const DECODE_CALLBACK &decode_callback) {
+void DecoderAVCodecImplementation::decode(long frames,
+                                          const DECODE_CALLBACK &decode_callback,
+                                          bool synchronous) {
   auto strong_this = shared_from_this();
-  std::thread([strong_this, decode_callback, frames] {
+  if (synchronous) {
     strong_this->runDecodeThread(frames, decode_callback);
-  }).detach();
+  } else {
+    std::thread([strong_this, decode_callback, frames] {
+      strong_this->runDecodeThread(frames, decode_callback);
+    }).detach();
+  }
 }
 
 void DecoderAVCodecImplementation::runDecodeThread(long frames,

@@ -54,7 +54,7 @@ class DecoderMidiImplementation : public Decoder,
   virtual long currentFrameIndex() final;
   virtual void seek(long frame_index) final;
   virtual long frames() final;
-  virtual void decode(long frames, const DECODE_CALLBACK &decode_callback) final;
+  virtual void decode(long frames, const DECODE_CALLBACK &decode_callback, bool synchronous) final;
   virtual bool eof() final;
   virtual const std::string &path() final;
   virtual const std::string &name() final;

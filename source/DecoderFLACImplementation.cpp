@@ -116,9 +116,11 @@ long DecoderFLACImplementation::frames() {
   return _frames;
 }
 
-void DecoderFLACImplementation::decode(long frames, const DECODE_CALLBACK &decode_callback) {
+void DecoderFLACImplementation::decode(long frames,
+                                       const DECODE_CALLBACK &decode_callback,
+                                       bool synchronous) {
   auto strong_this = shared_from_this();
-  std::thread([decode_callback, strong_this, frames]() {
+  auto run_thread = [decode_callback, strong_this, frames]() {
     std::lock_guard<std::mutex> flac_decoder_lock(strong_this->_flac_decoder_mutex);
     auto channels = strong_this->channels();
     auto frame_index = strong_this->currentFrameIndex();
@@ -145,7 +147,12 @@ void DecoderFLACImplementation::decode(long frames, const DECODE_CALLBACK &decod
                                   strong_this->_samples.begin() + read_samples);
       strong_this->_frame_index = frame_index + read_frames;
     }
-  }).detach();
+  };
+  if (synchronous) {
+    run_thread();
+  } else {
+    std::thread(run_thread).detach();
+  }
 }
 
 bool DecoderFLACImplementation::eof() {

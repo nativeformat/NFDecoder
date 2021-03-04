@@ -184,9 +184,10 @@ long DecoderDashToHLSTransmuxerImplementation::frames() {
 }
 
 void DecoderDashToHLSTransmuxerImplementation::decode(long frames,
-                                                      const DECODE_CALLBACK &decode_callback) {
+                                                      const DECODE_CALLBACK &decode_callback,
+                                                      bool synchronous) {
   auto strong_this = shared_from_this();
-  std::thread([strong_this, decode_callback, frames] {
+  auto run_thread = [strong_this, decode_callback, frames] {
     std::lock_guard<std::mutex> lock(strong_this->_decoding_mutex);
     long frame_index = strong_this->currentFrameIndex();
     long possible_frames = std::min(frames, strong_this->frames() - frame_index);
@@ -274,7 +275,12 @@ void DecoderDashToHLSTransmuxerImplementation::decode(long frames,
     strong_this->_samples.erase(
         strong_this->_samples.begin(),
         strong_this->_samples.begin() + (output_frames * strong_this->channels()));
-  }).detach();
+  };
+  if (synchronous) {
+    run_thread();
+  } else {
+    std::thread(run_thread).detach();
+  }
 }
 
 bool DecoderDashToHLSTransmuxerImplementation::eof() {

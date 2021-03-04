@@ -258,9 +258,10 @@ long DecoderAudioConverterImplementation::frames() {
 }
 
 void DecoderAudioConverterImplementation::decode(long frames,
-                                                 const DECODE_CALLBACK &decode_callback) {
+                                                 const DECODE_CALLBACK &decode_callback,
+                                                 bool synchronous) {
   auto strong_this = shared_from_this();
-  std::thread([strong_this, decode_callback, frames] {
+  auto run_thread = [strong_this, decode_callback, frames] {
     long frame_index = strong_this->currentFrameIndex();
     int channels = strong_this->channels();
     float *samples = (float *)malloc(frames * channels * sizeof(float));
@@ -334,7 +335,12 @@ void DecoderAudioConverterImplementation::decode(long frames,
     decode_callback(frame_index, read_frames, samples);
     free(samples);
     strong_this->_frame_index = frame_index + read_frames;
-  }).detach();
+  };
+  if (synchronous) {
+    run_thread();
+  } else {
+    std::thread(run_thread).detach();
+  }
 }
 
 bool DecoderAudioConverterImplementation::eof() {
