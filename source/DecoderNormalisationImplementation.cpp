@@ -256,12 +256,12 @@ void DecoderNormalisationImplementation::decode(long frames,
 
           sent_frames =
               (resampled_output_used_samples + cached_buffer_samples) / strong_this->channels();
-            if (sent_frames == 1 && frames != 1) {
-                sent_frames = 0;
-                strong_this->_pcm_buffer.clear();
-            } else {
-                strong_this->_frame_index = current_frame_index + sent_frames;
-            }
+          if (sent_frames == 1 && frames != 1) {
+            sent_frames = 0;
+            strong_this->_pcm_buffer.clear();
+          } else {
+            strong_this->_frame_index = current_frame_index + sent_frames;
+          }
         }
 
         decode_callback(current_frame_index, sent_frames, buffered_output);
