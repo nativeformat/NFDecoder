@@ -32,7 +32,10 @@ static const char JUNK[] = "JUNK";
 static const char FMT[] = "fmt ";
 static const char DATA[] = "data";
 
-#define CHUNK_TYPE(s, fcc) !strncmp(s, fcc, 4)
+static inline bool CHUNK_TYPE(char *s, const char *fcc) {
+  std::string str = s;
+  return str.compare(0, 4, fcc) == 0;
+}
 
 DecoderWavImplementation::DecoderWavImplementation(std::shared_ptr<DataProvider> &data_provider)
     : _data_provider(data_provider),
