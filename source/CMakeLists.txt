@@ -137,3 +137,7 @@ endif()
 if(USE_FFMPEG)
   target_compile_definitions(NFDecoder PRIVATE USE_FFMPEG=1)
 endif()
+
+if(INCLUDE_UDT)
+  add_definitions(-DINCLUDE_UDT=1)
+endif()

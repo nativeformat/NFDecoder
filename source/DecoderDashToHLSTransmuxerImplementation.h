@@ -22,6 +22,8 @@
 
 #include <NFDecoder/Decoder.h>
 
+#if INCLUDE_UDT
+
 #include <atomic>
 #include <memory>
 #include <string>
@@ -98,3 +100,5 @@ class DecoderDashToHLSTransmuxerImplementation
 
 }  // namespace decoder
 }  // namespace nativeformat
+
+#endif
