@@ -20,6 +20,8 @@
  */
 #include "DecoderDashToHLSTransmuxerImplementation.h"
 
+#if INCLUDE_UDT
+
 #include <thread>
 
 #include "DecoderAVCodecImplementation.h"
@@ -380,3 +382,5 @@ void DashToHlsDefaultDiagnosticCallback(const char *message) {
 }
 
 }  // namespace dash2hls
+
+#endif
