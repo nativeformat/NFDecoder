@@ -191,7 +191,7 @@ void DecoderNormalisationImplementation::decode(long frames,
           auto resampled_output_samples = new_frames * strong_this->channels();
           size_t resampled_output_size = resampled_output_samples * sizeof(float);
           float *resampled_output = (float *)malloc(resampled_output_size);
-          if (new_frames == input_frames) {
+          if (new_frames - 1 == input_frames) {
             memcpy(resampled_output, channel_samples, resampled_output_size);
           } else {
             bool eof = strong_this->_wrapped_decoder->eof();
