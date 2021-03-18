@@ -143,8 +143,7 @@ void DecoderNormalisationImplementation::decode(long frames,
           const auto decoder_channels = strong_this->_wrapped_decoder->channels();
           if (decoder_channels > channels) {
             // Copy the channels into stereo
-            int even_decoder_channels =
-                decoder_channels - (decoder_channels % channels);
+            int even_decoder_channels = decoder_channels - (decoder_channels % channels);
             for (long i = 0; i < input_frames; ++i) {
               for (int j = 0; j < even_decoder_channels; ++j) {
                 int normalised_channel = j % channels;
@@ -173,8 +172,7 @@ void DecoderNormalisationImplementation::decode(long frames,
             for (int i = 0; i < channels; ++i) {
               for (long j = 0; j < input_frames; ++j) {
                 if (i < decoder_channels) {
-                  channel_samples[(j * channels) + i] =
-                      samples[(j * decoder_channels) + i];
+                  channel_samples[(j * channels) + i] = samples[(j * decoder_channels) + i];
                 } else {
                   float sample = 0.0f;
                   for (int k = 0; k < decoder_channels; ++k) {
@@ -235,8 +233,7 @@ void DecoderNormalisationImplementation::decode(long frames,
                 // This shouldn't happen... but if it does do a regular copy
                 long max_frames = std::min(new_frames, input_frames);
                 for (long j = 0; j < max_frames; ++j) {
-                  resampled_output[(j * channels) + i] =
-                      channel_samples[(j * channels) + i];
+                  resampled_output[(j * channels) + i] = channel_samples[(j * channels) + i];
                 }
               }
             }
@@ -266,8 +263,7 @@ void DecoderNormalisationImplementation::decode(long frames,
           free(resampled_output);
           free(channel_samples);
 
-          sent_frames =
-              (resampled_output_used_samples + cached_buffer_samples) / channels;
+          sent_frames = (resampled_output_used_samples + cached_buffer_samples) / channels;
           if (sent_frames == 1 && frames != 1) {
             sent_frames = 0;
             strong_this->_pcm_buffer.clear();
