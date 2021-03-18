@@ -122,7 +122,8 @@ void DecoderNormalisationImplementation::decode(long frames,
     }
   }
   auto strong_this = shared_from_this();
-  long normalised_frames = (frames / _factor) * 1.01;  // Sometimes the normaliser cuts a bit off
+  // Sometimes the normaliser cuts a bit off
+  const auto normalised_frames = _factor != 1.0 ? (frames / _factor) * 1.01 : frames;
   _wrapped_decoder->decode(
       normalised_frames,
       [decode_callback, strong_this, frames](long frame_index, long input_frames, float *samples) {
@@ -133,10 +134,13 @@ void DecoderNormalisationImplementation::decode(long frames,
           std::lock_guard<std::mutex> resampler_lock(strong_this->_resampler_mutex);
           const auto channels = strong_this->channels();
           size_t channel_samples_count = input_frames * channels;
-          float *channel_samples = (float *)calloc(sizeof(float), channel_samples_count);
+          float *channel_samples = (float *)malloc(sizeof(float) * channel_samples_count);
+          for (int i = 0; i < channel_samples_count; ++i) {
+            channel_samples[i] = 0.0f;
+          }
 
           // Normalise the channels
-          int decoder_channels = strong_this->_wrapped_decoder->channels();
+          const auto decoder_channels = strong_this->_wrapped_decoder->channels();
           if (decoder_channels > channels) {
             // Copy the channels into stereo
             int even_decoder_channels =
@@ -186,7 +190,14 @@ void DecoderNormalisationImplementation::decode(long frames,
           }
 
           // Resample the channels
-          double factor = strong_this->_factor;
+          const auto factor = strong_this->_factor;
+          if (factor == 1.0) {
+            // Short circuit here
+            decode_callback(current_frame_index, input_frames, channel_samples);
+            free(channel_samples);
+            return;
+          }
+
           long new_frames = input_frames * factor + 1;
           auto resampled_output_samples = new_frames * channels;
           size_t resampled_output_size = resampled_output_samples * sizeof(float);
