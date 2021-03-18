@@ -131,45 +131,45 @@ void DecoderNormalisationImplementation::decode(long frames,
         long current_frame_index = strong_this->currentFrameIndex();
         {
           std::lock_guard<std::mutex> resampler_lock(strong_this->_resampler_mutex);
-          size_t channel_samples_count = input_frames * strong_this->channels();
+          const auto channels = strong_this->channels();
+          size_t channel_samples_count = input_frames * channels;
           float *channel_samples = (float *)calloc(sizeof(float), channel_samples_count);
 
           // Normalise the channels
           int decoder_channels = strong_this->_wrapped_decoder->channels();
-          if (decoder_channels > strong_this->channels()) {
+          if (decoder_channels > channels) {
             // Copy the channels into stereo
             int even_decoder_channels =
-                decoder_channels - (decoder_channels % strong_this->channels());
+                decoder_channels - (decoder_channels % channels);
             for (long i = 0; i < input_frames; ++i) {
               for (int j = 0; j < even_decoder_channels; ++j) {
-                int normalised_channel = j % strong_this->channels();
-                channel_samples[(i * strong_this->channels()) + normalised_channel] +=
+                int normalised_channel = j % channels;
+                channel_samples[(i * channels) + normalised_channel] +=
                     samples[(i * decoder_channels) + j];
               }
             }
             // Mix the uneven channel into both channels
             if (even_decoder_channels != decoder_channels) {
               for (long i = 0; i < input_frames; ++i) {
-                for (int j = 0; j < strong_this->channels(); ++j) {
-                  channel_samples[(i * strong_this->channels()) + j] +=
+                for (int j = 0; j < channels; ++j) {
+                  channel_samples[(i * channels) + j] +=
                       samples[(i * decoder_channels) + (decoder_channels - 1)];
                 }
               }
             }
             // Lower the volume properly
-            float volume_factor =
-                (decoder_channels / strong_this->channels()) + even_decoder_channels;
+            float volume_factor = decoder_channels / channels;
             for (long i = 0; i < input_frames; ++i) {
-              for (int j = 0; j < strong_this->channels(); ++j) {
-                channel_samples[(i * strong_this->channels()) + j] /= volume_factor;
+              for (int j = 0; j < channels; ++j) {
+                channel_samples[(i * channels) + j] /= volume_factor;
               }
             }
-          } else if (decoder_channels < strong_this->channels()) {
+          } else if (decoder_channels < channels) {
             // Copy all the other channels into the redundant channels
-            for (int i = 0; i < strong_this->channels(); ++i) {
+            for (int i = 0; i < channels; ++i) {
               for (long j = 0; j < input_frames; ++j) {
                 if (i < decoder_channels) {
-                  channel_samples[(j * strong_this->channels()) + i] =
+                  channel_samples[(j * channels) + i] =
                       samples[(j * decoder_channels) + i];
                 } else {
                   float sample = 0.0f;
@@ -177,7 +177,7 @@ void DecoderNormalisationImplementation::decode(long frames,
                     sample += samples[(j * decoder_channels) + k];
                   }
                   sample /= static_cast<float>(decoder_channels);
-                  channel_samples[(j * strong_this->channels()) + i] = sample;
+                  channel_samples[(j * channels) + i] = sample;
                 }
               }
             }
@@ -188,7 +188,7 @@ void DecoderNormalisationImplementation::decode(long frames,
           // Resample the channels
           double factor = strong_this->_factor;
           long new_frames = input_frames * factor + 1;
-          auto resampled_output_samples = new_frames * strong_this->channels();
+          auto resampled_output_samples = new_frames * channels;
           size_t resampled_output_size = resampled_output_samples * sizeof(float);
           float *resampled_output = (float *)malloc(resampled_output_size);
           if (new_frames - 1 == input_frames) {
@@ -200,11 +200,11 @@ void DecoderNormalisationImplementation::decode(long frames,
             size_t resampled_samples_size = new_frames * sizeof(float);
             float *old_channel_samples = (float *)malloc(old_channel_samples_size);
             float *resampled_samples = (float *)malloc(resampled_samples_size);
-            for (int i = 0; i < strong_this->channels(); ++i) {
+            for (int i = 0; i < channels; ++i) {
               void *resample_handler = strong_this->_resampler_handlers[i];
               if (resample_handler != nullptr) {
                 for (long j = 0; j < input_frames; ++j) {
-                  old_channel_samples[j] = channel_samples[(j * strong_this->channels()) + i];
+                  old_channel_samples[j] = channel_samples[(j * channels) + i];
                 }
                 int buffer_used = 0;
                 int sample_count = resample_process(resample_handler,
@@ -218,14 +218,14 @@ void DecoderNormalisationImplementation::decode(long frames,
                 new_frames = std::min(static_cast<long>(sample_count), new_frames);
                 for (long j = 0; j < new_frames; ++j) {
                   float sample = resampled_samples[j];
-                  resampled_output[(j * strong_this->channels()) + i] = sample;
+                  resampled_output[(j * channels) + i] = sample;
                 }
               } else {
                 // This shouldn't happen... but if it does do a regular copy
                 long max_frames = std::min(new_frames, input_frames);
                 for (long j = 0; j < max_frames; ++j) {
-                  resampled_output[(j * strong_this->channels()) + i] =
-                      channel_samples[(j * strong_this->channels()) + i];
+                  resampled_output[(j * channels) + i] =
+                      channel_samples[(j * channels) + i];
                 }
               }
             }
@@ -233,7 +233,7 @@ void DecoderNormalisationImplementation::decode(long frames,
             free(resampled_samples);
           }
 
-          auto buffered_output_samples = frames * strong_this->channels();
+          auto buffered_output_samples = frames * channels;
           buffered_output = (float *)malloc(buffered_output_samples * sizeof(float));
           auto cached_buffer_samples = std::min((long)strong_this->_pcm_buffer.size(), new_frames);
           memcpy(buffered_output,
@@ -256,7 +256,7 @@ void DecoderNormalisationImplementation::decode(long frames,
           free(channel_samples);
 
           sent_frames =
-              (resampled_output_used_samples + cached_buffer_samples) / strong_this->channels();
+              (resampled_output_used_samples + cached_buffer_samples) / channels;
           if (sent_frames == 1 && frames != 1) {
             sent_frames = 0;
             strong_this->_pcm_buffer.clear();
