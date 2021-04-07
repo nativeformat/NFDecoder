@@ -24,6 +24,7 @@
 #include "DecoderMidiImplementation.h"
 #include "DecoderOggImplementation.h"
 #include "DecoderWavImplementation.h"
+#include "DecoderSpeexImplementation.h"
 
 namespace nativeformat {
 namespace decoder {
@@ -34,7 +35,8 @@ FactoryCommonImplementation::FactoryCommonImplementation(
       _extensions_to_types({{NF_DECODER_MIME_TYPE_AUDIO_OGG, std::regex(".*\\.ogg|.*\\.opus")},
                             {NF_DECODER_MIME_TYPE_WAV, std::regex(".*\\.wav")},
                             {NF_DECODER_MIME_TYPE_FLAC, std::regex(".*\\.flac")},
-                            {NF_DECODER_MIME_TYPE_MIDI, std::regex("midi\\:.*")}}) {}
+                            {NF_DECODER_MIME_TYPE_MIDI, std::regex("midi\\:.*")},
+                            {NF_DECODER_MIME_TYPE_SPEEX, std::regex(".*\\.spx")}}) {}
 
 FactoryCommonImplementation::~FactoryCommonImplementation() {}
 
@@ -90,6 +92,16 @@ void FactoryCommonImplementation::createDecoder(
     decoder->load(error_decoder_callback, [decoder, create_decoder_callback](bool success) {
       create_decoder_callback(success ? decoder : nullptr);
     });
+    return;
+  } else if (NF_DECODER_SPEEX_MIME_TYPES.find(mime_type_check) != NF_DECODER_SPEEX_MIME_TYPES.end()) {
+    _data_provider_factory->createDataProvider(
+      path,
+      [create_decoder_callback,
+       error_decoder_callback](std::shared_ptr<DataProvider> data_provider) {
+        createDecoder<DecoderSpeexImplementation>(
+            data_provider, create_decoder_callback, error_decoder_callback);
+      },
+      error_decoder_callback);
     return;
   }
   create_decoder_callback(nullptr);

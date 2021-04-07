@@ -55,5 +55,10 @@ const std::set<std::string> NF_DECODER_MP3_MIME_TYPES({NF_DECODER_MIME_TYPE_MP3}
 const std::string NF_DECODER_MIME_TYPE_MIDI("midi");
 const std::set<std::string> NF_DECODER_MIDI_MIME_TYPES({NF_DECODER_MIME_TYPE_MIDI});
 
+const std::string NF_DECODER_MIME_TYPE_SPEEX_OGG("audio/x-speex");
+extern const std::string NF_DECODER_MIME_TYPE_SPEEX("audio/speex");
+extern const std::set<std::string> NF_DECODER_SPEEX_MIME_TYPES({NF_DECODER_MIME_TYPE_SPEEX_OGG,
+                                                                NF_DECODER_MIME_TYPE_SPEEX});
+
 }  // namespace decoder
 }  // namespace nativeformat
