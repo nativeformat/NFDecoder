@@ -684,6 +684,7 @@ set(SPEEX_INCLUDE_FILES
   ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/vq.h)
 add_library(speex STATIC ${SPEEX_SOURCE_FILES} ${SPEEX_INCLUDE_FILES})
 set(speex_CONFIG_FILE ${CMAKE_CURRENT_BINARY_DIR}/include/speex/speex_config_types.h)
+set(SIZE16 short)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/speex/include/speex/speex_config_types.h.in ${speex_CONFIG_FILE})
 target_include_directories(speex PUBLIC ${SPEEX_INCLUDE_DIR} ${SPEEX_INCLUDE_DIR}/speex/ ${CMAKE_CURRENT_BINARY_DIR}/include/speex/ PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex)
 target_compile_definitions(speex PRIVATE FIXED_POINT=1 EXPORT=__attribute__\(\(visibility\(\"default\"\)\)\) USE_SMALLFT=1)
