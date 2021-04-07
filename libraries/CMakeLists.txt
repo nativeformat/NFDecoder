@@ -683,6 +683,6 @@ set(SPEEX_INCLUDE_FILES
   ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/vq_sse.h
   ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/vq.h)
 add_library(speex STATIC ${SPEEX_SOURCE_FILES} ${SPEEX_INCLUDE_FILES})
-target_include_directories(speex PUBLIC ${SPEEX_INCLUDE_DIR} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex)
+target_include_directories(speex PUBLIC ${SPEEX_INCLUDE_DIR} ${SPEEX_INCLUDE_DIR}/speex/ PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex)
 target_compile_definitions(speex PRIVATE FIXED_POINT=1 EXPORT=__attribute__\(\(visibility\(\"default\"\)\)\) USE_SMALLFT=1)
 target_compile_options(opus PRIVATE "-Wno-unused-parameter" "-Wno-shadow")
