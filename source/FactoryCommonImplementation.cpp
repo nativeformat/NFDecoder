@@ -23,8 +23,8 @@
 #include "DecoderFLACImplementation.h"
 #include "DecoderMidiImplementation.h"
 #include "DecoderOggImplementation.h"
-#include "DecoderWavImplementation.h"
 #include "DecoderSpeexImplementation.h"
+#include "DecoderWavImplementation.h"
 
 namespace nativeformat {
 namespace decoder {
@@ -93,15 +93,16 @@ void FactoryCommonImplementation::createDecoder(
       create_decoder_callback(success ? decoder : nullptr);
     });
     return;
-  } else if (NF_DECODER_SPEEX_MIME_TYPES.find(mime_type_check) != NF_DECODER_SPEEX_MIME_TYPES.end()) {
+  } else if (NF_DECODER_SPEEX_MIME_TYPES.find(mime_type_check) !=
+             NF_DECODER_SPEEX_MIME_TYPES.end()) {
     _data_provider_factory->createDataProvider(
-      path,
-      [create_decoder_callback,
-       error_decoder_callback](std::shared_ptr<DataProvider> data_provider) {
-        createDecoder<DecoderSpeexImplementation>(
-            data_provider, create_decoder_callback, error_decoder_callback);
-      },
-      error_decoder_callback);
+        path,
+        [create_decoder_callback,
+         error_decoder_callback](std::shared_ptr<DataProvider> data_provider) {
+          createDecoder<DecoderSpeexImplementation>(
+              data_provider, create_decoder_callback, error_decoder_callback);
+        },
+        error_decoder_callback);
     return;
   }
   create_decoder_callback(nullptr);

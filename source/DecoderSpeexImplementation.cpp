@@ -53,21 +53,21 @@ const std::string &DecoderSpeexImplementation::name() {
 void DecoderSpeexImplementation::load(const ERROR_DECODER_CALLBACK &decoder_error_callback,
                                       const LOAD_DECODER_CALLBACK &decoder_load_callback) {
   std::shared_ptr<DecoderSpeexImplementation> strong_this = shared_from_this();
-  _load_future = std::async(
-      std::launch::async, [strong_this, decoder_error_callback, decoder_load_callback]() {
-        {
-          std::lock_guard<std::mutex> speex_lock(strong_this->_speex_mutex);
-          strong_this->_state = speex_decoder_init(&speex_nb_mode);
-          int tmp = 1;
-          speex_decoder_ctl(strong_this->_state, SPEEX_SET_ENH, &tmp);
-          speex_bits_init(&strong_this->_bits);
-          SpeexHeader header;
-          strong_this->_data_provider->read(&header, sizeof(SpeexHeader), 1);
-          strong_this->_samplerate = header.rate;
-          strong_this->_channels = header.nb_channels;
-        }
-        decoder_load_callback(true);
-      });
+  _load_future = std::async(std::launch::async,
+                            [strong_this, decoder_error_callback, decoder_load_callback]() {
+                              {
+                                std::lock_guard<std::mutex> speex_lock(strong_this->_speex_mutex);
+                                strong_this->_state = speex_decoder_init(&speex_nb_mode);
+                                int tmp = 1;
+                                speex_decoder_ctl(strong_this->_state, SPEEX_SET_ENH, &tmp);
+                                speex_bits_init(&strong_this->_bits);
+                                SpeexHeader header;
+                                strong_this->_data_provider->read(&header, sizeof(SpeexHeader), 1);
+                                strong_this->_samplerate = header.rate;
+                                strong_this->_channels = header.nb_channels;
+                              }
+                              decoder_load_callback(true);
+                            });
 }
 
 double DecoderSpeexImplementation::sampleRate() {
@@ -122,16 +122,19 @@ void DecoderSpeexImplementation::decode(long frames,
       speex_decoder_ctl(strong_this->_state, SPEEX_GET_FRAME_SIZE, &frame_size);
       while (!strong_this->_data_provider->eof() && strong_this->_cached_samples.size() < frames) {
         char read_bytes[256];
-        const auto bytes_read = strong_this->_data_provider->read(read_bytes, sizeof(char), sizeof(read_bytes));
+        const auto bytes_read =
+            strong_this->_data_provider->read(read_bytes, sizeof(char), sizeof(read_bytes));
         speex_bits_read_from(&strong_this->_bits, read_bytes, bytes_read);
         float samples[frame_size];
         const auto samples_read = speex_decode(strong_this->_state, &strong_this->_bits, samples);
-        strong_this->_cached_samples.insert(strong_this->_cached_samples.end(), samples, samples + samples_read);
+        strong_this->_cached_samples.insert(
+            strong_this->_cached_samples.end(), samples, samples + samples_read);
       }
     }
     read_frames = std::min(static_cast<long>(strong_this->_cached_samples.size()), frames);
     memcpy(samples, strong_this->_cached_samples.data(), read_frames * sizeof(float));
-    strong_this->_cached_samples.erase(strong_this->_cached_samples.begin(), strong_this->_cached_samples.begin() + read_frames);
+    strong_this->_cached_samples.erase(strong_this->_cached_samples.begin(),
+                                       strong_this->_cached_samples.begin() + read_frames);
     decode_callback(frame_index, read_frames, samples);
     free(samples);
   };
