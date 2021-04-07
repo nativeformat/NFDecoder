@@ -69,7 +69,9 @@ set(SOURCE_FILES
   DecoderAndroidImplementation.h
   DecoderAndroidImplementation.cpp
   FactoryAndroidImplementation.h
-  FactoryAndroidImplementation.cpp)
+  FactoryAndroidImplementation.cpp
+  DecoderSpeexImplementation.h
+  DecoderSpeexImplementation.cpp)
 set(LINK_LIBRARIES
   ogg
   vorbis
@@ -81,6 +83,7 @@ set(LINK_LIBRARIES
   ${OPENSSL_LIBRARIES}
   flac
   TinySoundFont
+  speex
   )
 set(INCLUDE_DIRS
   ../include
@@ -90,6 +93,7 @@ set(INCLUDE_DIRS
   ../libraries/ogg/include
   ../libraries/NFHTTP/include
   ../libraries/universal-dash-transmuxer/include
+  ../libraries/speex/include
   ${CMAKE_BINARY_DIR}/output)
 
 if(INCLUDE_UDT)

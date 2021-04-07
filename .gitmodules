@@ -28,3 +28,6 @@
 [submodule "libraries/universal-dash-transmuxer"]
 	path = libraries/universal-dash-transmuxer
 	url = https://github.com/google/universal-dash-transmuxer.git
+[submodule "libraries/speex"]
+	path = libraries/speex
+	url = https://github.com/xiph/speex.git

@@ -596,3 +596,99 @@ set(TINYSOUNDFONT_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/TinySoundFont)
 add_library(TinySoundFont INTERFACE)
 target_include_directories(TinySoundFont INTERFACE ${TINYSOUNDFONT_INCLUDE_DIR})
 
+# speex
+set(SPEEX_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/speex/include CACHE STRING "SPEEX includes" FORCE)
+set(SPEEX_SOURCE_FILES
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/bits.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/cb_search.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/exc_5_64_table.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/exc_5_256_table.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/exc_8_128_table.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/exc_10_16_table.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/exc_10_32_table.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/exc_20_32_table.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/fftwrap.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/filters.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/gain_table_lbr.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/gain_table.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/hexc_10_32_table.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/hexc_table.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/high_lsp_tables.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/kiss_fft.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/kiss_fftr.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/lpc.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/lsp_tables_nb.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/lsp.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/ltp.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/modes_wb.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/modes.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/nb_celp.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/quant_lsp.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/sb_celp.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/smallft.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/speex_callbacks.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/speex.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/stereo.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/vbr.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/vorbis_psy.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/vq.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/window.c)
+set(SPEEX_INCLUDE_FILES
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/include/speex/speex_bits.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/include/speex/speex_callbacks.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/include/speex/speex_header.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/include/speex/speex_stereo.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/include/speex/speex_types.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/include/speex/speex.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/_kiss_fft_guts.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/arch.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/bfin.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/cb_search_arm4.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/cb_search_bfin.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/cb_search_sse.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/cb_search.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/fftwrap.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/filters_arm4.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/filters_bfin.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/filters_sse.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/filters.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/fixed_arm4.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/fixed_arm5e.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/fixed_bfin.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/fixed_debug.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/fixed_generic.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/kiss_fft.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/kiss_fftr.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/lpc_bfin.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/lpc.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/lsp_bfin.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/lsp.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/ltp_arm4.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/ltp_bfin.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/ltp_sse.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/ltp.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/math_approx.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/misc_bfin.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/modes.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/nb_celp.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/os_support.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/quant_lsp_bfin.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/sb_celp.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/smallft.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/stack_alloc.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/vbr.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/vorbis_psy.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/vq_arm4.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/vq_bfin.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/vq_sse.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex/vq.h)
+add_library(speex STATIC ${SPEEX_SOURCE_FILES} ${SPEEX_INCLUDE_FILES})
+set(speex_CONFIG_FILE ${CMAKE_CURRENT_BINARY_DIR}/include/speex/speex_config_types.h)
+set(SIZE16 short)
+set(USIZE16 unsigned\ short)
+set(SIZE32 int)
+set(USIZE32 unsigned\ int)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/speex/include/speex/speex_config_types.h.in ${speex_CONFIG_FILE})
+target_include_directories(speex PUBLIC ${SPEEX_INCLUDE_DIR} ${SPEEX_INCLUDE_DIR}/speex/ ${CMAKE_CURRENT_BINARY_DIR}/include/speex/ PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/speex/libspeex)
+target_compile_definitions(speex PRIVATE FIXED_POINT=1 EXPORT=__attribute__\(\(visibility\(\"default\"\)\)\) USE_SMALLFT=1)
+target_compile_options(opus PRIVATE "-Wno-unused-parameter" "-Wno-shadow")

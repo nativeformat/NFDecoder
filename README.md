@@ -35,6 +35,7 @@ The interfaces are as follows:
 - [x] AAC
 - [x] Ogg Opus
 - [x] FLAC
+- [x] speex
 
 ## Dependencies :globe_with_meridians:
 
@@ -48,8 +49,10 @@ The interfaces are as follows:
 - [opus](https://github.com/xiph/opus)
 - [opusfile](https://github.com/xiph/opusfile)
 - [protobuf](https://developers.google.com/protocol-buffers/)
+- [speex](https://github.com/xiph/speex)
 
 ## Installation :inbox_tray:
+
 `NFDecoder` is a [Cmake](https://cmake.org/) project, while you are free to download the prebuilt static libraries it is recommended to use Cmake to install this project into your wider project. In order to add this into a wider Cmake project (who needs monorepos anyway?), simply add the following line to your `CMakeLists.txt` file:
 ```
 add_subdirectory(NFDecoder)

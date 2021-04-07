@@ -105,7 +105,11 @@ void DecoderNormalisationImplementation::seek(long frame_index) {
 }
 
 long DecoderNormalisationImplementation::frames() {
-  return _wrapped_decoder->frames() * _factor;
+  const auto wrapped_frames = _wrapped_decoder->frames();
+  if (wrapped_frames == UNKNOWN_FRAMES) {
+    return UNKNOWN_FRAMES;
+  }
+  return wrapped_frames * _factor;
 }
 
 void DecoderNormalisationImplementation::decode(long frames,
