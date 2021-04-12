@@ -31,3 +31,6 @@
 [submodule "libraries/speex"]
 	path = libraries/speex
 	url = https://github.com/xiph/speex.git
+[submodule "libraries/speexdsp"]
+	path = libraries/speexdsp
+	url = https://github.com/xiph/speexdsp.git
