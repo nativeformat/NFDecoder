@@ -14,6 +14,8 @@ A generic cross platform decoder for producing PCM data from encoded audio media
 - [x] 🐧 [Ubuntu](https://www.ubuntu.com/) Bionic 18.04+
 - [x] 🤖 [Android](https://developer.android.com/studio/) SDK r24+
 
+Developed at Spotify 2019-2022, Discontinued and handed over to new maintainers January 2023
+
 ## Raison D'être :thought_balloon:
 At Spotify we have performed studies that show the efficacy of using native backed solutions for interfacing to backends, especially when it came to the battery life of certain devices. In order to carry this forward in the cross-platform C++ world, we created this library that provides a common interface to many audio codecs. 
 We found that many of the current solutions that claimed to do this lacked key supports for many kinds of platforms, and ended up being libraries that heavily favoured 1 platform and gave the other platforms a generic implementation. We also wanted something that could extend to new codecs or protocols as they become available.
